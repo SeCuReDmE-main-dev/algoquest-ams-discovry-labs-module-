@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AlgoQuest: Your Journey into Algorithmic Thinking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: 'Inter', sans-serif; /* Assuming Inter is loaded or a fallback is acceptable */
+        /* Tailwind handles background color via classes on body or html tag */
+      }
+      /* Custom scrollbar for a cleaner look */
+      ::-webkit-scrollbar {
+          width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+          background: #f0f9ff; /* sky-50 from Tailwind palette */
+      }
+      ::-webkit-scrollbar-thumb {
+          background: #0ea5e9; /* sky-500 from Tailwind palette */
+          border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+          background: #0284c7; /* sky-600 from Tailwind palette */
+      }
+      /* Font import for Inter - typically done in CSS or here */
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "@google/genai": "https://esm.sh/@google/genai"
+  }
+}
+</script>
+</head>
+  <body class="antialiased text-slate-800 bg-sky-50">
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <!-- React scripts will be injected here by the build process -->
+  </body>
+</html>
