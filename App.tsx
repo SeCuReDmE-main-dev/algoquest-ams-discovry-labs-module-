@@ -43,7 +43,7 @@ const App: React.FC = () => {
           </ul>
         </div>
         <footer className="text-center text-xs text-slate-400">
-          <p>&copy; {currentYear} AlgoQuest. All rights reserved.</p>
+          <p>&copy; {currentYear} AlgoQuest. Licensed under LicenseRef-SEL-2.0.</p>
         </footer>
       </nav>
 
