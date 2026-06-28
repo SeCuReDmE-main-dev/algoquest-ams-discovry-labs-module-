@@ -1,41 +1,37 @@
 import React, { useState } from 'react';
 import Card from '../ui/Card';
-import { GoogleGenAI } from '@google/genai';
+
+const TOPIC_GUIDANCE: Record<string, string[]> = {
+    'quantum computing': [
+        'Quantum computing introduces a different way to reason about search, probability, and optimization.',
+        'For a beginner, the useful lesson is not to claim magic speedups. It is to compare classical steps with quantum-inspired concepts such as superposition, measurement, and constrained problem framing.'
+    ],
+    'AI and machine learning algorithms': [
+        'AI and machine learning algorithms learn patterns from examples instead of following only fixed hand-written rules.',
+        'In classroom use, the important habit is to ask what data was used, what the model is allowed to decide, and where human review remains required.'
+    ],
+    'DNA computing': [
+        'DNA computing shows that algorithms are not limited to silicon. Information can be represented and transformed through biochemical structures.',
+        'The school-safe takeaway is systems thinking: the representation, the environment, and the verification method matter as much as the abstract algorithm.'
+    ],
+    'neuromorphic computing': [
+        'Neuromorphic computing explores circuits inspired by nervous systems, especially event-driven signals and low-power pattern processing.',
+        'For learners, it is a good bridge between algorithms, hardware, perception, and the limits of copying biological ideas too literally.'
+    ]
+};
 
 const InnovationSection: React.FC = () => {
     const [topic, setTopic] = useState('quantum computing');
     const [generatedContent, setGeneratedContent] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
 
-    const fetchInnovationInfo = async () => {
-        if (!process.env.API_KEY) {
-            setError("API key is not set. Please configure it in your environment variables.");
-            return;
-        }
-        setIsLoading(true);
-        setError('');
-        setGeneratedContent('');
-        try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const prompt = `Explain the impact of ${topic} on the future of algorithms in a concise and exciting way for a beginner. Focus on 1-2 key ideas.`;
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: prompt,
-            });
-            setGeneratedContent(response.text);
-        } catch (e) {
-            console.error(e);
-            setError('Failed to fetch information. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
+    const fetchInnovationInfo = () => {
+        setGeneratedContent((TOPIC_GUIDANCE[topic] || []).join('\n\n'));
     };
 
     return (
         <div>
             <h1 className="text-4xl font-black text-slate-800 mb-2">Future of Algorithms</h1>
-            <p className="text-lg text-slate-600 mb-6">Explore cutting-edge topics that are shaping the next generation of algorithmic thinking, powered by AI.</p>
+            <p className="text-lg text-slate-600 mb-6">Explore topics that shape algorithmic thinking through school-safe local guidance.</p>
             
             <Card>
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
@@ -51,21 +47,11 @@ const InnovationSection: React.FC = () => {
                     </select>
                     <button
                         onClick={fetchInnovationInfo}
-                        disabled={isLoading}
-                        className="bg-purple-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-purple-700 transition-colors disabled:bg-slate-400"
+                        className="bg-purple-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-purple-700 transition-colors"
                     >
-                        {isLoading ? 'Generating...' : 'Explore Topic'}
+                        Explore Topic
                     </button>
                 </div>
-                
-                {error && <p className="text-red-500 bg-red-100 p-3 rounded-lg">{error}</p>}
-                
-                {isLoading && (
-                    <div className="text-center p-8">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-                        <p className="mt-4 text-slate-600">Thinking...</p>
-                    </div>
-                )}
 
                 {generatedContent && (
                     <div className="prose max-w-none mt-4 p-4 bg-slate-50 rounded-lg">
@@ -76,9 +62,9 @@ const InnovationSection: React.FC = () => {
                     </div>
                 )}
 
-                {!generatedContent && !isLoading && (
+                {!generatedContent && (
                      <div className="text-center p-8 bg-slate-50 rounded-lg">
-                        <p className="text-slate-500">Select a topic and click "Explore Topic" to learn about it with Gemini.</p>
+                        <p className="text-slate-500">Select a topic and click "Explore Topic" to learn through local classroom guidance.</p>
                     </div>
                 )}
             </Card>
