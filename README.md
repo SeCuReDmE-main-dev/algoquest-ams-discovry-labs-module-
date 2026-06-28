@@ -19,7 +19,7 @@ The reason for excluding generic local AI routes from official school mode is st
 
 > **Official school governance.** AlgoQuest is for supervised algorithm and discovery-lab education. It is not a tool for theft, fraud, bypass, abuse, or criminal automation. The maintained classroom route supports Codex/OpenAI or Antigravity/Gemini only. See [SCHOOL_TOOL_GOVERNANCE.md](SCHOOL_TOOL_GOVERNANCE.md) and [AGENTS.md](AGENTS.md).
 
-> **License.** This project uses the Secured Educational License 2.0 (`LicenseRef-SEL-2.0`). See [LICENSE](LICENSE), [NOTICE](NOTICE), and [DISCLAIMER](DISCLAIMER).
+> **License.** This project uses the Secured Educational License 2.0 (SEL-2.0). See [LICENSE](LICENSE), [NOTICE](NOTICE), and [DISCLAIMER](DISCLAIMER).
 
 This repository contains a pre-alpha SecuredMe Education classroom app for exploring algorithmic thinking. It runs locally without a Gemini API key, `.env.local`, shared token, or embedded AI secret. Codex/OpenAI and Antigravity/Gemini remain approved external school companions through browser-authenticated workflows.
 
@@ -32,6 +32,7 @@ This repository contains a pre-alpha SecuredMe Education classroom app for explo
    `npm install`
 2. Run the app:
    `npm run dev`
+
 
 
 
