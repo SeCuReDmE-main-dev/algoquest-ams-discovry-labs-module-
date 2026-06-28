@@ -6,6 +6,8 @@
 
 > **Official school governance.** AlgoQuest is for supervised algorithm and discovery-lab education. It is not a tool for theft, fraud, bypass, abuse, or criminal automation. The maintained classroom route supports Codex/OpenAI or Antigravity/Gemini only. See [SCHOOL_TOOL_GOVERNANCE.md](SCHOOL_TOOL_GOVERNANCE.md) and [AGENTS.md](AGENTS.md).
 
+> **License.** This project uses the Secured Educational License 2.0 (`LicenseRef-SEL-2.0`). See [LICENSE](LICENSE), [NOTICE](NOTICE), and [DISCLAIMER](DISCLAIMER).
+
 This contains everything you need to run your app locally.
 
 View your app in AI Studio: https://ai.studio/apps/drive/11mjRMntiCS3PkcXRTiAx-RsSBbWNC-Av
