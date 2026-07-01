@@ -1,0 +1,37 @@
+{
+  "name": "securedme-algoquest-codex-adapter",
+  "version": "0.1.0",
+  "description": "AlgoQuest discovery labs adapter.",
+  "author": {
+    "name": "SecuredMe",
+    "url": "https://securedme.ca"
+  },
+  "homepage": "https://algoquest.securedme.ca",
+  "license": "MIT",
+  "keywords": [
+    "securedme",
+    "education",
+    "webauth",
+    "token-governor"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "AlgoQuest Codex Adapter",
+    "shortDescription": "AlgoQuest discovery labs adapter.",
+    "longDescription": "Repo-local Codex adapter for AlgoQuest. It keeps the app in pre-alpha, uses browser-authenticated OpenAI/Codex workflows, forbids copied secrets, and prepares future Token Governor and MCP integration.",
+    "developerName": "SecuredMe",
+    "category": "Education",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Adapter"
+    ],
+    "websiteURL": "https://algoquest.securedme.ca",
+    "defaultPrompt": [
+      "Open the AlgoQuest adapter context.",
+      "Check WebAuth readiness without secrets.",
+      "Plan a Token Governor handoff."
+    ]
+  },
+  "repository": "https://github.com/SeCuReDmE-main-dev/algoquest-ams-discovry-labs-module-"
+}
