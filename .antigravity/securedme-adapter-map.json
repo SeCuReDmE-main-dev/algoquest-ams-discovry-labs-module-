@@ -3,9 +3,10 @@
   "schema": "securedme.education.adapter-map.v1",
   "app": {
     "slug": "algoquest",
-    "name": "AlgoQuest",
+    "name": "AlgoQuest Discovery Labs",
     "path": "algoquest-ams-discovry-labs-module-",
     "canonical_domain": "algoquest.securedme.ca",
+    "canonical_route": "https://securedme.ca/education/apps/algoquest/",
     "status": "pre-alpha"
   },
   "platform": "antigravity",
