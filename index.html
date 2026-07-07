@@ -4,8 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AlgoQuest: Your Journey into Algorithmic Thinking</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f172a'/%3E%3Cpath d='M9 20V12l7-4 7 4v8l-7 4-7-4Z' fill='%2338bdf8'/%3E%3Ccircle cx='13' cy='15' r='2' fill='white'/%3E%3Ccircle cx='19' cy='15' r='2' fill='white'/%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
       body {
         font-family: 'Inter', sans-serif; /* Assuming Inter is loaded or a fallback is acceptable */
         /* Tailwind handles background color via classes on body or html tag */
@@ -24,8 +26,6 @@
       ::-webkit-scrollbar-thumb:hover {
           background: #0284c7; /* sky-600 from Tailwind palette */
       }
-      /* Font import for Inter - typically done in CSS or here */
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
     </style>
   <script type="importmap">
 {
@@ -41,6 +41,6 @@
   <body class="antialiased text-slate-800 bg-sky-50">
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <!-- React scripts will be injected here by the build process -->
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
