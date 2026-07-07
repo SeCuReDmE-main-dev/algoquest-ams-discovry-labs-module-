@@ -34,6 +34,10 @@ The reason for excluding generic local AI routes from official school mode is st
 > **SecuredMe Education visual theme.** This pre-alpha school tool uses the shared SecuredMe Education open-source visual identity. See [assets/securedme/education](assets/securedme/education) for light/dark logo and thin banner assets.
 
 <div align="center">
+  <img width="1200" alt="AlgoQuest Qbit Education public banner" src="assets/brand-selected/algoquest-public-banner.png" />
+</div>
+
+<div align="center">
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
@@ -54,7 +58,6 @@ This repository contains a pre-alpha SecuredMe Education classroom app for explo
    `npm install`
 2. Run the app:
    `npm run dev`
-
 
 
 

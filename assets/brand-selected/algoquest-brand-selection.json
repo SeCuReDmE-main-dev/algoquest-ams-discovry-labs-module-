@@ -1,0 +1,54 @@
+{
+  "schema": "securedme.education.algoquest-brand-selection.v1",
+  "app_slug": "algoquest",
+  "decision_date": "2026-07-07",
+  "dry_run_distribution": true,
+  "local_distribution_complete": true,
+  "controller_live_write_gated": true,
+  "required_gateway_check": "qbit_badge_asset_file",
+  "selected_assets": {
+    "tiny_mark": {
+      "path": "assets/brand-selected/algoquest-tiny-mark.png",
+      "source_path": "assets/Favio et app icon final/1.png",
+      "dimensions": "1254x1254",
+      "sha256_prefix": "cce91c32706fc46e",
+      "usage": "small cross-app AlgoQuest/Qbit mark, favicon/app icon seed, 16-32px corner badge"
+    },
+    "public_banner": {
+      "path": "assets/brand-selected/algoquest-public-banner.png",
+      "source_path": "assets/final banner/6.png",
+      "dimensions": "1916x821",
+      "sha256_prefix": "b0e7ba4b51c25a72",
+      "usage": "final public hero/banner image for AlgoQuest"
+    },
+    "logo_lockup": {
+      "path": "assets/brand-selected/algoquest-logo-lockup.png",
+      "source_path": "assets/final logo/1.png",
+      "dimensions": "1254x1254",
+      "sha256_prefix": "091c10754a69f1e8",
+      "usage": "documentation logo, brand lockup, launch deck mark"
+    },
+    "companion_badge": {
+      "path": "assets/brand-selected/algoquest-companion-badge.png",
+      "source_path": "assets/final badge/5.png",
+      "dimensions": "1254x1254",
+      "sha256_prefix": "c0177cebed5a3fff",
+      "usage": "onboarding and Qbit companion identity, not the universal tiny mark"
+    }
+  },
+  "distribution_rule": {
+    "all_education_apps": "use tiny_mark only, max 24px in dense app chrome and max 32px in quiet empty states",
+    "algoquest_public_surface": "use public_banner as the final public image and logo_lockup as brand mark",
+    "student_surface": "tiny_mark in header plus companion_badge only in onboarding or first-run Qbit explanation",
+    "teacher_surface": "tiny_mark in header/status only; avoid mascot-heavy badge by default",
+    "gateway_install": "tiny_mark beside AlgoQuest companion offer; no banner",
+    "docs_and_decks": "public_banner for hero, logo_lockup for cover/title, companion_badge for Qbit explainer"
+  },
+  "do_not_use_as_global_tiny_mark": [
+    "assets/final badge/1.png",
+    "assets/final badge/5.png",
+    "assets/final logo/1.png",
+    "assets/final banner/6.png"
+  ],
+  "reasoning": "The selected tiny mark is the most legible and least childish at small sizes. The selected public banner keeps the owl identity visible while staying bright, approachable, and suitable for adult beginners as well as students."
+}

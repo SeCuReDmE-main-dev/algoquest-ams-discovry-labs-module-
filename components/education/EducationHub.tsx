@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import qbitGuide from '../../assets/qbit/qbit-stencil-guide.png';
+import algoQuestTinyMark from '../../assets/brand-selected/algoquest-tiny-mark.png';
 import {
   installSequence,
   qbitStudentIntervention,
@@ -70,7 +70,7 @@ const QbitPanel: React.FC<{
 }> = ({ intervention, enabled, reducedMotion, onEnable, onSkip }) => (
   <aside className="rounded-lg border border-sky-100 bg-white p-4 shadow-sm">
     <div className="flex items-center gap-3">
-      <img src={qbitGuide} alt="Qbit companion" className="h-14 w-14 rounded-md object-contain" />
+      <img src={algoQuestTinyMark} alt="AlgoQuest Qbit mark" className="h-12 w-12 rounded-md object-contain" />
       <div>
         <p className="text-sm font-bold text-slate-900">{enabled ? renderQbitBadge(intervention) : 'Qbit quiet'}</p>
         <p className="text-xs text-slate-500">{reducedMotion ? 'Reduced motion on' : 'Motion restrained'}</p>
@@ -289,8 +289,13 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
       <div className="flex min-h-screen flex-col lg:flex-row">
         <aside className="border-b border-slate-200 bg-white p-5 lg:w-72 lg:border-b-0 lg:border-r">
           <div>
-            <p className="text-2xl font-black text-slate-950">AlgoQuest</p>
-            <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Qbit Education Hub</p>
+            <div className="flex items-center gap-3">
+              <img src={algoQuestTinyMark} alt="" className="h-9 w-9 rounded-md object-contain" />
+              <div>
+                <p className="text-2xl font-black text-slate-950">AlgoQuest</p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Qbit Education Hub</p>
+              </div>
+            </div>
           </div>
 
           <div className="mt-6 space-y-2">
