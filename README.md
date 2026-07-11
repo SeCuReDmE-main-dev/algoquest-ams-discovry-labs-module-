@@ -1,6 +1,12 @@
+# AlgoQuest Qbit Education
+
 [![SecuredMe Education Suite public calendar](https://img.shields.io/badge/SecuredMe%20Education%20Suite-public%20calendar%20%7C%20alpha%20Aug%203%202026-5484ED?style=for-the-badge&logo=googlecalendar&logoColor=white)](https://calendrier.securedme.ca)
 
-**Attribution:** Jean-Sebastien Beaulieu · [ORCID 0009-0007-2904-0443](https://orcid.org/0009-0007-2904-0443) · [SecuredMe](https://securedme.ca) · [AlgoQuest](https://algoquest.securedme.ca)
+**Attribution:** Jean-Sébastien Beaulieu · [ORCID 0009-0007-2904-0443](https://orcid.org/0009-0007-2904-0443) · [SecuredMe](https://securedme.ca) · [AlgoQuest](https://algoquest.securedme.ca)
+
+<div align="center">
+  <img width="1200" alt="AlgoQuest Qbit Education public banner" src="assets/brand-selected/algoquest-public-banner.png" />
+</div>
 
 <!-- SECUREDME-SUITE-BADGES:START -->
 [![Issues](https://img.shields.io/github/issues/SeCuReDmE-main-dev/algoquest-ams-discovry-labs-module-?color=161B6A)](https://github.com/SeCuReDmE-main-dev/algoquest-ams-discovry-labs-module-/issues)
@@ -9,136 +15,159 @@
 [![Branch](https://img.shields.io/badge/branch-main-0E7490)](https://github.com/SeCuReDmE-main-dev/algoquest-ams-discovry-labs-module-/tree/main)
 <!-- SECUREDME-SUITE-BADGES:END -->
 
-<!-- SECUREDME-STARTUP-SUPPORT:START -->
-<p align="center">
-  <a href="https://e2b.dev/startups">
-    <img alt="Gateway-ready E2B audit lane" src="https://img.shields.io/badge/Gateway--ready-E2B%20audit%20lane-FF8800?style=for-the-badge" />
-  </a>
-  <a href="https://www.datadoghq.com/partner/datadog-for-startups/">
-    <img alt="Gateway-ready Datadog observability" src="https://img.shields.io/badge/Gateway--ready-Datadog%20observability-632CA6?style=for-the-badge&amp;logo=datadog&amp;logoColor=white" />
-  </a>
-</p>
+> **Status:** pre-alpha / in development.
 
-> **Gateway support acknowledgement.** This SecuredMe school tool is gateway-compatible. E2B audit support and Datadog observability are routed through the shared SecuredMe gateway when that lane is configured; this repository does not claim a direct E2B or Datadog runtime dependency by default, and no E2B or Datadog secret is stored in this README.
-<!-- SECUREDME-STARTUP-SUPPORT:END -->
+AlgoQuest in this repository is a **React + Vite learning + gateway-interoperability module** built for the SecuredMe Education suite.  
+It has two concurrent objectives:
 
-<div align="center">
-  <img width="1200" alt="AlgoQuest Qbit Education public banner" src="assets/brand-selected/algoquest-public-banner.png" />
-</div>
+1. Give students and teachers a usable interface for algorithm learning.
+2. Demonstrate deterministic, local-only integration contracts for cross-app education orchestration (Gateway-style sessions, install sequence, metrics, and local pointer/event ingestion).
 
-# AlgoQuest Qbit Education
+This module is already significantly larger than a demo. It combines:
 
-AlgoQuest is a pre-alpha SecuredMe Education app for beginner algorithm learning and suite-wide Qbit companion routing. It combines a student/teacher education hub with an interactive algorithm discovery lab.
+- a student/teacher education hub with explicit surface separation,
+- an interactive "Learning Lab" with multiple lesson sections,
+- suite interoperability services using browser-local contract queues,
+- static MkDocs documentation with self-hosted accessibility controls,
+- a curated brand system (tiny mark, banners, badges, logos, and selected publication assets).
 
-The current codebase is larger than a simple algorithm demo. It includes:
-
-- a React/Vite app shell;
-- separate `/student` and `/teacher` education surfaces;
-- Gateway-style session, consent, install-order, Qbit, metric, and secret-boundary contracts;
-- Visual Algorithm Designer and V.O.T Guardian localStorage interoperability;
-- a legacy interactive learning lab for algorithm basics;
-- selected AlgoQuest brand assets for public, docs, favicon, and cross-app tiny mark use;
-- MkDocs documentation with SecuredMe Education theme and self-hosted accessibility controls.
-
-> **Status:** pre-alpha / in development. This repository is not a stable classroom release yet, and the maintained project does not evaluate external PRs for merge until the stability gate is lifted.
-
-## What The App Does
-
-### Qbit Education Hub
-
-`App.tsx` starts in the education hub by default. The hub is implemented in `components/education/EducationHub.tsx` and provides two surfaces:
-
-| Surface | Route | Purpose |
-| --- | --- | --- |
-| Student | `/student` | Shows a validated algorithm artifact, score/threshold state, Qbit support, student metric rows, and optional V.O.T Guardian pointer status. |
-| Teacher | `/teacher` | Shows aggregate-only planning information, redacted teacher metrics, intervention recommendation state, and the 11-app connection queue. |
-
-The hub keeps student and teacher concepts separate. Teacher metrics are aggregate/redacted; student events can include direct learning progress but must remain secret-safe.
-
-### Gateway And Qbit Contracts
-
-The app models the suite contract shape used by the broader SecuredMe Education work:
-
-- `GatewayInstallSequence`
-- `EducationSessionRole`
-- `StudentLearningEvent`
-- `TeacherPlanningEvent`
-- `EducationMetricsEnvelope`
-- `QbitIntervention`
-- `GuardianArtifactPointer`
-
-The contract types live in `types.ts`. Runtime helpers live in `services/qbitCompanion.ts` and `services/educationInterop.ts`.
-
-Important boundaries:
-
-- install order is `gateway_doctor -> algoquest_companion_offer -> selected_tool`;
-- raw secrets, tokens, cookies, student names, roster fields, and `.env` material are rejected by local helpers;
-- browser WebAuth and fingerprinted Gateway approval are the intended school route when authentication is needed;
-- no local API key or `.env.local` is required for the current app.
-
-### Education Suite Interop
-
-`services/educationInterop.ts` reads local event queues from browser `localStorage`:
-
-| Storage key | Purpose |
-| --- | --- |
-| `securedme.education.algoquest.outbox.v1` | Reads Visual Algorithm Designer learning events that pass schema, score threshold, and secret checks. |
-| `securedme.education.vot-guardian.outbox.v1` | Reads V.O.T Guardian artifact pointers without embedding raw payloads. |
-
-Fallback fixtures are in `data/educationFixtures.ts`. They model a VAD artifact scoring `93/93`, risk flags, Qbit intervention state, teacher planning, and the 11 non-hub apps to connect.
-
-### Learning Lab
-
-The older learning lab is still available from the hub through `Learning Lab`. It includes:
-
-- problem-type quiz;
-- drag/drop "build an algorithm" ordering exercise;
-- linear-search performance visualization;
-- greedy-path graph demonstration;
-- future-algorithm topic guidance.
-
-The learning lab sections live in `components/sections/`.
-
-## Brand And Assets
-
-AlgoQuest now uses the selected Qbit Education asset set in `assets/brand-selected/`.
-
-| Role | Path | Source | Use |
-| --- | --- | --- | --- |
-| Tiny cross-app mark | `assets/brand-selected/algoquest-tiny-mark.png` | `assets/Favio et app icon final/1.png` | Favicon, compact Qbit badge, all-app tiny mark. |
-| Public banner | `assets/brand-selected/algoquest-public-banner.png` | `assets/final banner/6.png` | README/docs hero and public-facing image. |
-| Logo lockup | `assets/brand-selected/algoquest-logo-lockup.png` | `assets/final logo/1.png` | Brand lockup and presentation use. |
-| Companion badge | `assets/brand-selected/algoquest-companion-badge.png` | `assets/final badge/5.png` | Onboarding and Qbit companion explanation only. |
-
-The selection manifest is `assets/brand-selected/algoquest-brand-selection.json`.
-
-The tiny mark has also been distributed into the 11 non-hub Education app manifests through the suite-level adapter surface. The Gateway contract now requires the `qbit_badge_asset_file` check so the badge path, role, and SHA-256 can be validated.
-
-## Repository Map
+## Repo map (high signal)
 
 | Path | Responsibility |
 | --- | --- |
-| `App.tsx` | Top-level app state, surface routing, and switch between Qbit hub and learning lab. |
-| `components/education/` | Student/teacher Qbit Education hub UI. |
-| `components/sections/` | Interactive algorithm learning lab modules. |
-| `components/ui/` | Small shared UI primitives. |
-| `services/qbitCompanion.ts` | Contract emitters, session helpers, Qbit helpers, and secret-like field detection. |
-| `services/educationInterop.ts` | Reads/writes suite event boundaries and derives metrics/planning events. |
-| `data/educationFixtures.ts` | Pre-alpha contract-safe fixtures used by the hub. |
-| `types.ts` | Shared TypeScript contracts for Gateway, Qbit, metrics, student, teacher, and Guardian events. |
-| `assets/brand-selected/` | Canonical AlgoQuest selected brand assets. |
-| `assets/securedme/education/` | Shared SecuredMe Education visual theme assets. |
-| `docs/` | MkDocs documentation source, including accessibility pages and local JS/CSS controls. |
-| `qa/` | Screenshot evidence from previous visual checks. |
+| `App.tsx` | Route-surface switcher, global state entrypoint, surface-aware learning lab launch. |
+| `components/education/EducationHub.tsx` | Main application UI for both `student` and `teacher` surfaces. |
+| `components/sections/` | Learning modules for the legacy quiz/build/performance/paradigm/innovation lab. |
+| `services/qbitCompanion.ts` | Contract builder + validation helpers (`session`, `qbit`, metrics, secret scanning). |
+| `services/educationInterop.ts` | LocalStorage interop for VAD artifact events, VOT Guardian pointers, and install-sequence persistence + metrics derivation. |
+| `data/educationFixtures.ts` | Contract-safe fixture defaults used in absence of external event queues. |
+| `types.ts` | Shared contracts and enums for all education/gateway payloads. |
+| `components/ui/` | Shared surface primitives (`Card`, `NavButton`). |
+| `docs/`, `overrides/`, `docs/javascripts/*`, `docs/stylesheets/*` | MkDocs Material education site with in-browser dark/light + Access console. |
+| `assets/brand-selected/`, `assets/securedme/education/` | Brand system, logos, banners, and doc visuals. |
 
-## Run Locally
+## What the app does
 
-Prerequisites:
+### 1) EducationHub (two surfaces only)
 
-- Node.js
-- npm
+The hub is rendered by default from `App.tsx` and has strict surface partitioning:
 
-Install and run:
+- **Student surface** (`/student`)
+  - Shows validated artifact details inherited from Visual Algorithm Designer event queue.
+  - Supports role selection between:
+    - `student_minor`
+    - `student_adult`
+  - Displays student metric store + install metrics.
+- **Teacher surface** (`/teacher`)
+  - Shows redacted/planned classroom metrics, aggregate recommendations, and a 11-app connection queue.
+  - Uses the same metric pipeline but with aggregate/redacted surface semantics.
+
+#### Surface controls in the UI
+- Install scope chooser: `Enable for this tool`, `Enable for suite`, `Skip for now`.
+- Gateway snapshot panel: doctor status, requested tool, selected-tool status, persisted/dry-run marker.
+- Qbit helper panel with enable/skip controls.
+- Motion toggle (reduced motion) for comfort / accessibility.
+- Learning Lab launcher.
+
+### 2) Learning Lab modules
+
+Accessible via "Learning Lab" from hub:
+
+- `components/sections/HomeSection.tsx` – onboarding and launch points to sections.
+- `ProblemTypesSection.tsx` – 3-question quiz logic.
+- `BuildAlgoSection.tsx` – drag/drop ordering game.
+- `PerformanceSection.tsx` – linear search visualization.
+- `ParadigmsSection.tsx` – greedy path demo.
+- `InnovationSection.tsx` – local-topic exploration panel.
+
+### 3) Gateway-style integration layer
+
+`EducationHub` and service files model a local-safe interop contract for cross-tool workflows.
+
+- Core contracts in `types.ts`:
+  - `EducationSessionRole`
+  - `StudentLearningEvent`
+  - `GuardianArtifactPointer`
+  - `TeacherPlanningEvent`
+  - `EducationMetricsEnvelope`
+  - `QbitIntervention`
+  - `GatewayInstallSequence`
+- Contract validation helpers in `qbitCompanion.ts`:
+  - `validateGatewayContext`
+  - `buildSession`
+  - `getConsentScope`
+  - `hasSecretLikeField`
+- Local interoperability in `educationInterop.ts`:
+  - `readLatestVadLearningEvent`
+  - `readLatestGuardianPointer`
+  - `readInstallSequenceFromStorage`
+  - `persistInstallSequence`
+  - `buildStudentMetricsFromLearningEvent`
+  - `buildTeacherMetricsFromLearningEvent`
+  - `buildTeacherPlanningFromLearningEvent`
+  - `buildInstallMetricsFromSequence`
+
+#### LocalStorage contracts used
+
+| Key | Purpose |
+| --- | --- |
+| `securedme.education.algoquest.outbox.v1` | Ingests latest validated Visual Algorithm Designer artifact event. |
+| `securedme.education.vot-guardian.outbox.v1` | Ingests latest VOT Guardian pointer event. |
+| `securedme.education.algoquest.install-sequence.v1` | Persists install sequence choice per surface/session role. |
+
+Install sequence shape is validated against `GatewayInstallSequence` and is only persisted when it is structurally valid and secret-safe.
+
+## Data behavior you should know
+
+- Fixture default in this repo: score threshold is `93`, matching `data/educationFixtures.ts`.
+- Student risk flags in the fixture include `privacy`, `secret`.
+- Teacher planning is produced as redacted aggregate guidance.
+- Install metrics are surfaced separately for student and teacher as:
+  - `gateway_install_offer`
+  - `gateway_consent_scope`
+- Session context is generated locally by `buildSession(...)` and validated on render; mismatches surface through guard errors before sensitive content path usage.
+
+## Security and secret boundary
+
+This module enforces boundary checks in code:
+
+- `raw_secret_stored` is expected false on all contract objects.
+- secret-like keys detection rejects common private material patterns (API keys, passwords, cookies, tokens, roster-level identifiers, etc.).
+- no `.env` local secrets are required for the current flow.
+- official AI-assisted classroom providers are constrained by repository governance (see `AGENTS.md`, `SCHOOL_TOOL_GOVERNANCE.md`, `SECURITY.md`).
+
+Relevant docs:
+- [SCHOOL_TOOL_GOVERNANCE.md](./SCHOOL_TOOL_GOVERNANCE.md)
+- [SAFETY.md](./SAFETY.md)
+- [CONTRIBUTING.md](./CONTRIBUTING.md)
+- [AGENTS.md](./AGENTS.md)
+
+## Documentation site (docs/ + MkDocs)
+
+Repo includes a docs surface intentionally kept independent from app runtime:
+
+- `mkdocs.yml`
+- `docs/index.md`
+- `docs/accessibility/edge-user-console.md`
+- `docs/accessibility/neurodivergent-comfort.md`
+- `overrides/partials/content.html`
+- `docs/stylesheets/securedme-education.css`
+- `docs/stylesheets/securedme-theme-toggle.css`
+- `docs/stylesheets/securedme-accessibility.css`
+- `docs/javascripts/securedme-theme-toggle.js`
+- `docs/javascripts/securedme-accessibility.js`
+
+Docs behavior:
+- Light/dark mode button with local persistence key `securedme:theme:v1`.
+- Access console with local persistence key `securedme:a11y:v2` and automatic migration from `securedme:a11y:v1`.
+- Shortcuts:
+  - `Ctrl+U` open/close Access console
+  - `Esc` close console
+  - `Ctrl+Alt+S` toggle sprint timer.
+
+## Running the project locally
+
+### Frontend app
 
 ```powershell
 npm install
@@ -151,63 +180,57 @@ Build:
 npm run build
 ```
 
-Preview the production build:
+Preview:
 
 ```powershell
 npm run preview
 ```
 
-The app is a Vite React project. Tailwind is currently loaded through the CDN in `index.html`, and Inter is loaded through Google Fonts. There is no committed test script in `package.json` at this stage.
-
-## Documentation Site
-
-The MkDocs documentation lives in `docs/` and uses Material for MkDocs with SecuredMe Education theme overrides.
-
-Build docs:
+### Documentation site
 
 ```powershell
 python -m mkdocs build --strict
 ```
 
-Docs include:
+## Quality checks completed
 
-- public AlgoQuest banner;
-- dark/light mode;
-- self-hosted Access console;
-- neurodivergent comfort controls;
-- no third-party accessibility SaaS widget;
-- browser-local settings only.
+- `npm install`
+- `npm run build` ✅
+- `python -m mkdocs build --strict` ✅
 
-## Safety, Security, And Governance
+No automated unit test script is defined in `package.json` yet.
 
-AlgoQuest is a supervised education tool. It must not be converted into an abuse, bypass, fraud, theft, malware, credential, surveillance, enforcement, or autonomous decision tool.
+## Suite and branding notes
 
-Read:
+- Base asset set: `assets/brand-selected/*`
+- Cross-doc brand assets: `assets/securedme/education/*`
+- QA screenshots: `qa/` (desktop/mobile captures for learner + teacher).
+- `assets/video/` and `assets/pdf/` contain optional reference/media artifacts used for docs or distribution context.
 
-- `SCHOOL_TOOL_GOVERNANCE.md`
-- `SAFETY.md`
-- `SECURITY.md`
-- `CONTRIBUTING.md`
-- `AGENTS.md`
+## Governance and license
 
-Official school AI-assisted routes are Codex/OpenAI and Antigravity/Gemini through governed browser-authenticated workflows. Generic local AI routes, raw-token student flows, uncensored local providers, and unknown agent providers are not maintained as official classroom routes.
-
-## License
-
-This project uses the Secured Educational License 2.0, local reference `LicenseRef-SEL-2.0`.
+- License: Secured Educational License 2.0 (SEL-2.0), local reference `LicenseRef-SEL-2.0`.
+- Not OSI-approved, not listed in SPDX.
+- This is pre-alpha; maintainer-reviewed PR pipeline is the only official support route for stable school-tool releases.
 
 See:
+- [LICENSE](./LICENSE)
+- [NOTICE](./NOTICE)
+- [DISCLAIMER](./DISCLAIMER)
 
-- `LICENSE`
-- `NOTICE`
-- `DISCLAIMER`
+## Contribution boundaries
 
-The license is custom to SecuredMe and is not currently OSI-approved or listed in the SPDX License List.
+- Changes should keep contract types/validators and UI partitioning coherent.
+- Keep student/teacher separation explicit in any new surfaces.
+- Never add new local secret fields into contract objects.
+- If you add education routes or providers, preserve official support boundaries and documented provider constraints.
 
-## Current Limits
+## Roadmap candidates (from code-state signals)
 
-- Pre-alpha: not a stable classroom release.
-- No package-level unit test script is currently defined.
-- Gateway/WebAuth is represented through local contract helpers and fixtures in this repo; live gateway execution belongs to the broader suite.
-- External PR review is paused until the official school-tool stability gate is lifted.
-- Public docs and app builds are available locally, but deployment readiness depends on the wider SecuredMe Education release process.
+- Add unit/integration test harness (Vitest / Playwright) around:
+  - surface routing (`/student` vs `/teacher`),
+  - install-sequence persistence + `consent_scope`,
+  - event reader guards in `educationInterop`.
+- Add explicit install contract migration for sequence schema/version.
+- Add fixture-backed tests for `buildInstallMetricsFromSequence` edge cases.
+- Add a script that validates README repository map against actual file presence.

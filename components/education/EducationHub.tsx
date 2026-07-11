@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import algoQuestTinyMark from '../../assets/brand-selected/algoquest-tiny-mark.png';
 import {
   installSequence,
@@ -10,8 +10,11 @@ import {
 } from '../../data/educationFixtures';
 import {
   buildStudentMetricsFromLearningEvent,
+  buildInstallMetricsFromSequence,
   buildTeacherMetricsFromLearningEvent,
   buildTeacherPlanningFromLearningEvent,
+  persistInstallSequence,
+  readInstallSequenceFromStorage,
   readLatestGuardianPointer,
   readLatestVadLearningEvent,
 } from '../../services/educationInterop';
@@ -163,11 +166,12 @@ const StudentSurface: React.FC<{
   learningEvent: StudentLearningEvent;
   guardianPointer: GuardianArtifactPointer | null;
   metrics: EducationMetricsEnvelope[];
+  installMetrics: EducationMetricsEnvelope[];
   qbitEnabled: boolean;
   reducedMotion: boolean;
   onEnableQbit: () => void;
   onSkipQbit: () => void;
-}> = ({ learningEvent, guardianPointer, metrics, qbitEnabled, reducedMotion, onEnableQbit, onSkipQbit }) => (
+}> = ({ learningEvent, guardianPointer, metrics, installMetrics, qbitEnabled, reducedMotion, onEnableQbit, onSkipQbit }) => (
   <div className="grid gap-5 xl:grid-cols-[1.45fr_0.75fr]">
     <section>
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -229,6 +233,17 @@ const StudentSurface: React.FC<{
           ))}
         </div>
       </section>
+      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <h3 className="text-sm font-black text-slate-900">Install metric store</h3>
+        <div className="mt-3 space-y-3">
+          {installMetrics.map((metric) => (
+            <div key={metric.metric_id} className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2">
+              <span className="text-xs font-semibold text-slate-600">{metric.event_type}</span>
+              <span className="text-sm font-black text-slate-900">{metric.count}</span>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   </div>
 );
@@ -236,11 +251,12 @@ const StudentSurface: React.FC<{
 const TeacherSurface: React.FC<{
   planningEvent: TeacherPlanningEvent;
   metrics: EducationMetricsEnvelope[];
+  installMetrics: EducationMetricsEnvelope[];
   qbitEnabled: boolean;
   reducedMotion: boolean;
   onEnableQbit: () => void;
   onSkipQbit: () => void;
-}> = ({ planningEvent, metrics, qbitEnabled, reducedMotion, onEnableQbit, onSkipQbit }) => (
+}> = ({ planningEvent, metrics, installMetrics, qbitEnabled, reducedMotion, onEnableQbit, onSkipQbit }) => (
   <div className="grid gap-5 xl:grid-cols-[1.35fr_0.8fr]">
     <section>
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -278,6 +294,17 @@ const TeacherSurface: React.FC<{
           </div>
         ))}
       </div>
+      <section className="rounded-lg border border-slate-200 bg-slate-50 p-4 shadow-sm mt-4">
+        <h3 className="text-sm font-black text-slate-900">Install metric store</h3>
+        <div className="mt-3 space-y-3">
+          {installMetrics.map((metric) => (
+            <div key={metric.metric_id} className="grid grid-cols-[1fr_auto] items-center rounded-md bg-white px-3 py-2">
+              <span className="text-xs font-semibold text-slate-600">{metric.event_type}</span>
+              <span className="text-sm font-black text-slate-900">{metric.count}</span>
+            </div>
+          ))}
+        </div>
+      </section>
     </section>
 
     <div className="space-y-5">
@@ -303,7 +330,9 @@ const TeacherSurface: React.FC<{
 );
 
 const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface, onOpenLearningLab }) => {
-  const [activeInstallSequence, setActiveInstallSequence] = useState<GatewayInstallSequence>({ ...installSequence, selected_tool_status: installSequence.selected_tool_status });
+  const [activeInstallSequence, setActiveInstallSequence] = useState<GatewayInstallSequence>(() =>
+    readInstallSequenceFromStorage(installSequence),
+  );
   const [qbitEnabled, setQbitEnabled] = useState<boolean>(getConsentScope(activeInstallSequence) !== 'none');
   const [reducedMotion, setReducedMotion] = useState<boolean>(true);
   const [sessionRole, setSessionRole] = useState<GatewayRole>(() => {
@@ -327,6 +356,10 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
   );
   const studentMetricRows = useMemo(() => buildStudentMetricsFromLearningEvent(learningEvent), [learningEvent]);
   const teacherMetricRows = useMemo(() => buildTeacherMetricsFromLearningEvent(learningEvent), [learningEvent]);
+  const installMetricRows = useMemo(() => buildInstallMetricsFromSequence(activeInstallSequence), [activeInstallSequence]);
+  useEffect(() => {
+    persistInstallSequence(activeInstallSequence);
+  }, [activeInstallSequence]);
 
   const session = useMemo(() => buildSession(surface === 'teacher' ? 'teacher' : sessionRole, surface), [surface, sessionRole]);
 
@@ -344,6 +377,7 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
       selected_tool_status: nextOffer === 'skip_for_now' ? 'blocked' : 'installed',
     };
     const nextScope = getConsentScope(nextState);
+    persistInstallSequence(nextState);
     setActiveInstallSequence(nextState);
     setQbitEnabled(nextScope !== 'none');
   };
@@ -351,6 +385,12 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
   const setRole = (nextRole: GatewayRole) => {
     if (surface !== 'teacher' && (nextRole === 'student_minor' || nextRole === 'student_adult')) {
       setSessionRole(nextRole);
+      const sequenceByRole = {
+        ...activeInstallSequence,
+        role: nextRole,
+      };
+      persistInstallSequence(sequenceByRole);
+      setActiveInstallSequence(sequenceByRole);
       const params = new URLSearchParams(window.location.search);
       params.set('role', nextRole);
       const query = params.toString();
@@ -530,6 +570,7 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
                 learningEvent={learningEvent}
                 guardianPointer={guardianPointer}
                 metrics={studentMetricRows}
+                installMetrics={installMetricRows}
                 qbitEnabled={qbitEnabled}
                 reducedMotion={reducedMotion}
                 onEnableQbit={() => setQbitEnabled(true)}
@@ -539,6 +580,7 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
               <TeacherSurface
                 planningEvent={planningEvent}
                 metrics={teacherMetricRows}
+                installMetrics={installMetricRows}
                 qbitEnabled={qbitEnabled}
                 reducedMotion={reducedMotion}
                 onEnableQbit={() => setQbitEnabled(true)}
