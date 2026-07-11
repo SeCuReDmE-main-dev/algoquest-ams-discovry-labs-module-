@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { PERFORMANCE_DATA_LIST, PERFORMANCE_TARGET_NUMBER } from '../../constants';
 import { BarData } from '../../types';
 import Card from '../ui/Card';
@@ -14,12 +14,19 @@ const PerformanceSection: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [isSearching, setIsSearching] = useState(false);
   const [foundIndex, setFoundIndex] = useState(-1);
+  const [searchSteps, setSearchSteps] = useState(0);
+  const dataRef = useRef(initialData);
+
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
   
   const reset = () => {
     setData(initialData);
     setCurrentIndex(-1);
     setIsSearching(false);
     setFoundIndex(-1);
+    setSearchSteps(0);
   };
 
   const startSearch = () => {
@@ -30,13 +37,23 @@ const PerformanceSection: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!isSearching || currentIndex >= data.length) {
-      if(currentIndex >= data.length) setIsSearching(false);
+    if (!isSearching) {
       return;
-    };
+    }
+
+    if (currentIndex >= data.length) {
+      setIsSearching(false);
+      return;
+    }
 
     const interval = setInterval(() => {
-      const currentBar = data[currentIndex];
+      const currentBar = dataRef.current[currentIndex];
+      if (!currentBar) {
+        setIsSearching(false);
+        return;
+      }
+
+      setSearchSteps((value) => value + 1);
       setData(prevData => prevData.map((bar, index) => 
         index === currentIndex ? { ...bar, state: 'comparing' } : bar
       ));
@@ -56,7 +73,15 @@ const PerformanceSection: React.FC = () => {
     }, 500);
 
     return () => clearInterval(interval);
-  }, [isSearching, currentIndex, data]);
+  }, [isSearching, currentIndex, data.length]);
+
+  const statusText = foundIndex !== -1
+    ? `Found ${PERFORMANCE_TARGET_NUMBER} at index ${foundIndex}.`
+    : isSearching && currentIndex < data.length
+      ? `Checking index ${currentIndex}. Value is ${data[currentIndex].value}.`
+      : foundIndex === -1 && currentIndex >= data.length
+        ? `Search ended. ${PERFORMANCE_TARGET_NUMBER} is not present.`
+        : 'Ready to start a linear search.';
   
   const getBarColor = (state: BarData['state']) => {
     switch (state) {
@@ -98,9 +123,12 @@ const PerformanceSection: React.FC = () => {
         </div>
         
         <div className="mt-4 text-center h-6">
-          {foundIndex !== -1 && <p className="text-green-600 font-bold">Found {PERFORMANCE_TARGET_NUMBER} at index {foundIndex}!</p>}
-          {isSearching && currentIndex < data.length && <p className="text-yellow-600 font-bold">Checking index {currentIndex} (Value: {data[currentIndex].value})...</p>}
-          {isSearching && currentIndex >= data.length && <p className="text-red-600 font-bold">Number not found!</p>}
+          <p className="font-bold" aria-live="polite">
+            {statusText}
+          </p>
+        </div>
+        <div className="mt-2 text-center text-xs text-slate-500" aria-live="polite">
+          Steps: {searchSteps}
         </div>
       </Card>
     </div>

@@ -1,26 +1,52 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { GREEDY_PATH_GRAPH } from '../../constants';
 import Card from '../ui/Card';
 
 const ParadigmsSection: React.FC = () => {
   const [path, setPath] = useState<string[]>(['S']);
-  const [totalCost, setTotalCost] = useState(0);
+  const [totalCost, setTotalCost] = useState<number>(0);
+  const [isComplete, setIsComplete] = useState<boolean>(false);
+  const [lastDecision, setLastDecision] = useState<string>('Press "Find Greedy Path" to run the step-by-step example.');
+
+  const getCurrentNode = () => path[path.length - 1];
+  const completionNote = useMemo(() => {
+    if (!path.length) return 'No active path. Click reset to start again.';
+    if (isComplete) return `Path complete at ${getCurrentNode()} with total cost ${totalCost}.`;
+    return `Current node: ${getCurrentNode()}.`;
+  }, [isComplete, path, totalCost]);
 
   const findPath = () => {
-    // Simple greedy logic for this specific graph
-    const nextNode = GREEDY_PATH_GRAPH.edges
-      .filter(edge => edge.from === 'S')
-      .reduce((prev, curr) => (prev.cost < curr.cost ? prev : curr));
-    
-    setPath(['S', nextNode.to, 'E']);
+    const currentNode = getCurrentNode();
 
-    const finalEdge = GREEDY_PATH_GRAPH.edges.find(edge => edge.from === nextNode.to && edge.to === 'E');
-    setTotalCost(nextNode.cost + (finalEdge?.cost || 0));
+    if (isComplete) {
+      setLastDecision('Greedy path already completed to the destination node.');
+      return;
+    }
+
+    const edgesFromCurrent = GREEDY_PATH_GRAPH.edges.filter((edge) => edge.from === currentNode);
+
+    if (!edgesFromCurrent.length) {
+      setLastDecision('No outgoing edges available from the current node.');
+      return;
+    }
+
+    const nextNode = edgesFromCurrent.reduce((prev, curr) => (prev.cost < curr.cost ? prev : curr));
+    const nextPath = [...path, nextNode.to];
+
+    setPath(nextPath);
+    setTotalCost((prev) => prev + nextNode.cost);
+    setLastDecision(`Greedy step: chose ${nextNode.from} -> ${nextNode.to} with weight ${nextNode.cost}.`);
+
+    if (nextNode.to === 'E') {
+      setIsComplete(true);
+    }
   };
 
   const reset = () => {
     setPath(['S']);
     setTotalCost(0);
+    setIsComplete(false);
+    setLastDecision('Press "Find Greedy Path" to run the step-by-step example.');
   };
 
   const isEdgeInPath = (edgeId: string) => {
@@ -85,10 +111,27 @@ const ParadigmsSection: React.FC = () => {
         <div className="text-center mb-6">
           <p className="text-lg">Path: <strong className="text-sky-600">{path.join(' -> ')}</strong></p>
           <p className="text-lg">Total Cost: <strong className="text-sky-600">{totalCost}</strong></p>
+          <p className="mt-1 text-sm text-slate-600">{completionNote}</p>
+          <p className="mt-2 text-sm text-slate-600" aria-live="polite">
+            {lastDecision}
+          </p>
         </div>
         <div className="flex justify-center gap-4">
-          <button onClick={findPath} className="bg-sky-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-sky-600 transition-colors">Find Greedy Path</button>
-          <button onClick={reset} className="bg-slate-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-slate-600 transition-colors">Reset</button>
+          <button
+            type="button"
+            onClick={findPath}
+            disabled={isComplete}
+            className="bg-sky-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-sky-600 transition-colors disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            {isComplete ? 'Path Complete' : 'Next Greedy Step'}
+          </button>
+          <button
+            type="button"
+            onClick={reset}
+            className="bg-slate-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-slate-600 transition-colors"
+          >
+            Reset
+          </button>
         </div>
       </Card>
     </div>
