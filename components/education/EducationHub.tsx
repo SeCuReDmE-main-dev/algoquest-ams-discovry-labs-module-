@@ -90,6 +90,60 @@ const ConsentScopeBadge: React.FC<{ scope: ConsentScope }> = ({ scope }) => (
   <StatusPill label={`consent: ${scope}`} tone={scope === 'none' ? 'amber' : 'blue'} />
 );
 
+const suiteToolStatus = (
+  toolSlug: string,
+  requestedToolSlug: string,
+  consentScope: ConsentScope,
+  selectedToolStatus: GatewayInstallSequence['selected_tool_status'],
+): 'all' | 'selected' | 'locked' => {
+  if (consentScope === 'suite') {
+    return 'all';
+  }
+  if (toolSlug !== requestedToolSlug) {
+    return 'locked';
+  }
+  return selectedToolStatus === 'installed' ? 'selected' : 'locked';
+};
+
+const SuiteConnectionQueue: React.FC<{
+  tools: string[];
+  requestedTool: string;
+  consentScope: ConsentScope;
+  selectedToolStatus: GatewayInstallSequence['selected_tool_status'];
+}> = ({ tools, requestedTool, consentScope, selectedToolStatus }) => {
+  return (
+    <div className="mt-3 space-y-2">
+      {tools.map((tool) => {
+        const status = suiteToolStatus(tool, requestedTool, consentScope, selectedToolStatus);
+        const isSelected = tool === requestedTool;
+
+        const classes =
+          status === 'all'
+            ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+            : status === 'selected'
+              ? 'border-sky-200 bg-sky-50 text-sky-900'
+              : isSelected
+                ? 'border-amber-200 bg-amber-50 text-amber-900'
+                : 'border-slate-200 bg-white text-slate-500';
+
+        const label = status === 'all' ? 'suite' : isSelected ? selectedToolStatus : 'waiting';
+
+        return (
+          <div
+            key={tool}
+            className={`rounded-md border px-2 py-1 text-xs font-semibold ${classes}`}
+          >
+            <div className="flex items-center justify-between">
+              <span>{tool}</span>
+              <span className="uppercase tracking-wide">{label}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 const roleLabel = (role: GatewayRole): string =>
   role === 'student_minor' ? 'Minor learner profile' : role === 'student_adult' ? 'Adult learner profile' : 'Teacher profile';
 
@@ -252,11 +306,25 @@ const TeacherSurface: React.FC<{
   planningEvent: TeacherPlanningEvent;
   metrics: EducationMetricsEnvelope[];
   installMetrics: EducationMetricsEnvelope[];
+  requestedTool: string;
+  consentScope: ConsentScope;
+  selectedToolStatus: GatewayInstallSequence['selected_tool_status'];
   qbitEnabled: boolean;
   reducedMotion: boolean;
   onEnableQbit: () => void;
   onSkipQbit: () => void;
-}> = ({ planningEvent, metrics, installMetrics, qbitEnabled, reducedMotion, onEnableQbit, onSkipQbit }) => (
+}> = ({
+  planningEvent,
+  metrics,
+  installMetrics,
+  requestedTool,
+  consentScope,
+  selectedToolStatus,
+  qbitEnabled,
+  reducedMotion,
+  onEnableQbit,
+  onSkipQbit,
+}) => (
   <div className="grid gap-5 xl:grid-cols-[1.35fr_0.8fr]">
     <section>
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -317,22 +385,32 @@ const TeacherSurface: React.FC<{
       />
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
         <h3 className="text-sm font-black text-slate-900">11 app connection queue</h3>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          {suiteAppsToConnect.map((slug) => (
-            <span key={slug} className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600">
-              {slug}
-            </span>
-          ))}
-        </div>
+        <SuiteConnectionQueue
+          tools={suiteAppsToConnect}
+          requestedTool={requestedTool}
+          consentScope={consentScope}
+          selectedToolStatus={selectedToolStatus}
+        />
       </section>
     </div>
   </div>
 );
 
 const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface, onOpenLearningLab }) => {
-  const [activeInstallSequence, setActiveInstallSequence] = useState<GatewayInstallSequence>(() =>
-    readInstallSequenceFromStorage(installSequence),
-  );
+  const [activeInstallSequence, setActiveInstallSequence] = useState<GatewayInstallSequence>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedTool = params.get('tool');
+    const storedSequence = readInstallSequenceFromStorage(installSequence);
+
+    if (requestedTool && suiteAppsToConnect.includes(requestedTool) && storedSequence.requested_tool_slug !== requestedTool) {
+      return {
+        ...storedSequence,
+        requested_tool_slug: requestedTool,
+      };
+    }
+
+    return storedSequence;
+  });
   const [qbitEnabled, setQbitEnabled] = useState<boolean>(getConsentScope(activeInstallSequence) !== 'none');
   const [reducedMotion, setReducedMotion] = useState<boolean>(true);
   const [sessionRole, setSessionRole] = useState<GatewayRole>(() => {
@@ -369,6 +447,31 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
   const consentScope = getConsentScope(activeInstallSequence);
 
   const installScopeTitle = sequenceCopy(activeInstallSequence.algoquest_offer_status);
+
+  const setRequestedTool = (nextTool: string) => {
+    if (!suiteAppsToConnect.includes(nextTool) || activeInstallSequence.requested_tool_slug === nextTool) {
+      return;
+    }
+
+    const nextSelectedStatus: GatewayInstallSequence['selected_tool_status'] =
+      activeInstallSequence.algoquest_offer_status === 'enable_for_suite'
+        ? 'installed'
+        : activeInstallSequence.algoquest_offer_status === 'skip_for_now'
+          ? 'blocked'
+          : 'pending';
+
+    const nextState: GatewayInstallSequence = {
+      ...activeInstallSequence,
+      requested_tool_slug: nextTool,
+      selected_tool_status: nextSelectedStatus,
+    };
+    persistInstallSequence(nextState);
+    setActiveInstallSequence(nextState);
+    const params = new URLSearchParams(window.location.search);
+    params.set('tool', nextTool);
+    const basePath = window.location.pathname;
+    window.history.replaceState({}, '', `${basePath}${params.toString() ? `?${params}` : ''}`);
+  };
 
   const applyOffer = (nextOffer: GatewayInstallSequence['algoquest_offer_status']) => {
     const nextState: GatewayInstallSequence = {
@@ -489,6 +592,26 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
           </div>
 
           <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3">
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Target app selection</p>
+            <div className="mt-3 grid grid-cols-1 gap-2">
+              {suiteAppsToConnect.map((tool) => (
+                <button
+                  key={tool}
+                  type="button"
+                  onClick={() => setRequestedTool(tool)}
+                  className={`rounded-md border px-3 py-2 text-left text-xs font-semibold ${
+                    activeInstallSequence.requested_tool_slug === tool
+                      ? 'border-sky-300 bg-sky-50 text-slate-900'
+                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {tool}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3">
             <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Gateway contract snapshot</p>
             <ul className="mt-3 space-y-2 text-sm text-slate-700">
               <li className="flex items-start justify-between gap-2">
@@ -581,6 +704,9 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
                 planningEvent={planningEvent}
                 metrics={teacherMetricRows}
                 installMetrics={installMetricRows}
+                requestedTool={activeInstallSequence.requested_tool_slug}
+                consentScope={consentScope}
+                selectedToolStatus={activeInstallSequence.selected_tool_status}
                 qbitEnabled={qbitEnabled}
                 reducedMotion={reducedMotion}
                 onEnableQbit={() => setQbitEnabled(true)}

@@ -45,6 +45,16 @@ const readStorageObject = (key: string): Record<string, unknown> | null => {
   }
 }
 
+const findLatestMatchingEvent = <T>(items: unknown[], predicate: (value: unknown) => value is T): T | null => {
+  for (let index = items.length - 1; index >= 0; index -= 1) {
+    const candidate = items[index];
+    if (predicate(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+};
+
 export function isStudentLearningEvent(value: unknown): value is StudentLearningEvent {
   if (!isRecord(value)) {
     return false;
@@ -84,15 +94,23 @@ export function isGatewayInstallSequence(value: unknown): value is GatewayInstal
   if (!isRecord(value)) {
     return false;
   }
+
+  const offerStatus = value.algoquest_offer_status;
+  const selectedToolStatus = value.selected_tool_status;
+  const role = value.role;
+
   return (
     value.schema === 'securedme.education.gateway-install-sequence.v1' &&
     typeof value.install_id === 'string' &&
     typeof value.requested_tool_slug === 'string' &&
     (value.doctor_status === 'passed' || value.doctor_status === 'failed') &&
-    ['enable_for_this_tool', 'enable_for_suite', 'skip_for_now'].includes(value.algoquest_offer_status) &&
-    ['pending', 'blocked', 'installed'].includes(value.selected_tool_status) &&
+    typeof offerStatus === 'string' &&
+    ['enable_for_this_tool', 'enable_for_suite', 'skip_for_now'].includes(offerStatus) &&
+    typeof selectedToolStatus === 'string' &&
+    ['pending', 'blocked', 'installed'].includes(selectedToolStatus) &&
     typeof value.fingerprint_ref === 'string' &&
-    ['student_minor', 'student_adult', 'teacher'].includes(value.role) &&
+    typeof role === 'string' &&
+    ['student_minor', 'student_adult', 'teacher'].includes(role) &&
     typeof value.created_at === 'string' &&
     value.contract_version === 'v1' &&
     value.raw_secret_stored === false &&
@@ -101,11 +119,11 @@ export function isGatewayInstallSequence(value: unknown): value is GatewayInstal
 }
 
 export function readLatestVadLearningEvent(fallback: StudentLearningEvent): StudentLearningEvent {
-  return readStorageArray(ALGOQUEST_OUTBOX_STORAGE_KEY).find(isStudentLearningEvent) ?? fallback;
+  return findLatestMatchingEvent(readStorageArray(ALGOQUEST_OUTBOX_STORAGE_KEY), isStudentLearningEvent) ?? fallback;
 }
 
 export function readLatestGuardianPointer(): GuardianArtifactPointer | null {
-  return readStorageArray(GUARDIAN_OUTBOX_STORAGE_KEY).find(isGuardianArtifactPointer) ?? null;
+  return findLatestMatchingEvent(readStorageArray(GUARDIAN_OUTBOX_STORAGE_KEY), isGuardianArtifactPointer);
 }
 
 export function readInstallSequenceFromStorage(fallback: GatewayInstallSequence): GatewayInstallSequence {

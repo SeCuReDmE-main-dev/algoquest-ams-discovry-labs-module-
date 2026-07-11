@@ -27,6 +27,8 @@ This page is a practical map of how AlgoQuest is implemented in this repository.
 - **Build metrics:** `buildStudentMetricsFromLearningEvent`, `buildTeacherMetricsFromLearningEvent`, `buildInstallMetricsFromSequence`
 - **Build planning event:** `buildTeacherPlanningFromLearningEvent`
 
+`EducationHub` can now also target a specific suite app as `requested_tool_slug` and keeps that target in local contract state.
+
 ## Local storage contracts
 
 - `securedme.education.algoquest.outbox.v1`

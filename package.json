@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "validate": "npm run build && npx tsc --noEmit && python -m mkdocs build --strict",
+    "test": "npm run validate"
   },
   "dependencies": {
     "react": "^19.1.0",
