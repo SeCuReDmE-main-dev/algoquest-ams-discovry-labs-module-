@@ -7,6 +7,7 @@ const BuildAlgoSection: React.FC = () => {
   const [steps, setSteps] = useState<AlgorithmStepType[]>(() => [...BUILD_ALGO_INITIAL_STEPS].sort(() => Math.random() - 0.5));
   const [draggedItem, setDraggedItem] = useState<AlgorithmStepType | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [attemptCount, setAttemptCount] = useState<number>(0);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, item: AlgorithmStepType) => {
     setDraggedItem(item);
@@ -36,10 +37,17 @@ const BuildAlgoSection: React.FC = () => {
 
   const checkOrder = () => {
     const userOrderIds = steps.map(step => step.id);
-    // Check if the first 5 match the correct order
     const result = userOrderIds.slice(0, BUILD_ALGO_CORRECT_ORDER_IDS.length)
       .every((id, index) => id === BUILD_ALGO_CORRECT_ORDER_IDS[index]);
+    setAttemptCount((value) => value + 1);
     setIsCorrect(result);
+  };
+
+  const resetChallenge = () => {
+    setSteps([...BUILD_ALGO_INITIAL_STEPS].sort(() => Math.random() - 0.5));
+    setDraggedItem(null);
+    setIsCorrect(null);
+    setAttemptCount(0);
   };
 
   return (
@@ -69,6 +77,13 @@ const BuildAlgoSection: React.FC = () => {
         >
           Check My Algorithm
         </button>
+        <button
+          type="button"
+          onClick={resetChallenge}
+          className="w-full mt-3 border border-slate-200 bg-white text-slate-700 font-bold py-3 px-4 rounded-lg hover:bg-slate-50 transition-colors"
+        >
+          Reset Challenge
+        </button>
 
         {isCorrect !== null && (
           <div className={`mt-4 p-4 rounded-lg text-center font-bold ${isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -79,6 +94,7 @@ const BuildAlgoSection: React.FC = () => {
       <Card className="mt-4">
         <h3 className="font-bold text-lg">Note:</h3>
         <p className="text-slate-600">One of these steps is a distractor and shouldn't be part of the final core logic. Your goal is to get the first five steps right!</p>
+        <p className="mt-2 text-sm text-slate-500">Attempts so far: {attemptCount}</p>
       </Card>
     </div>
   );

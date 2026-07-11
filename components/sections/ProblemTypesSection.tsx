@@ -45,9 +45,13 @@ const ProblemTypesSection: React.FC = () => {
   }
 
   const getOptionClasses = (index: number) => {
-    let classes = 'p-4 border rounded-lg cursor-pointer transition-all duration-300';
+    let classes = 'w-full p-4 border rounded-lg transition-all duration-300 text-left';
     if (!isAnswered) {
-      return `${classes} ${selectedOption === index ? 'bg-sky-100 border-sky-500' : 'bg-white hover:bg-gray-50'}`;
+      return `${classes} ${
+        selectedOption === index
+          ? 'bg-sky-100 border-sky-500 text-sky-900'
+          : 'bg-white border-slate-200 hover:bg-sky-50 hover:border-sky-400'
+      }`;
     }
     if (currentQuestion.options[index].isCorrect) {
       return `${classes} bg-green-100 border-green-500 text-green-800`;
@@ -55,7 +59,7 @@ const ProblemTypesSection: React.FC = () => {
     if (index === selectedOption) {
       return `${classes} bg-red-100 border-red-500 text-red-800`;
     }
-    return `${classes} bg-white`;
+    return `${classes} bg-white border-slate-200`;
   };
 
   if (showResult) {
@@ -73,6 +77,9 @@ const ProblemTypesSection: React.FC = () => {
   return (
     <div>
       <h1 className="text-4xl font-black text-slate-800 mb-6">Quiz: Algorithm Problem Types</h1>
+      <p className="mb-5 text-slate-600">
+        Pick the best answer for each question. You can use the keyboard (Tab then Enter/Space) on every option.
+      </p>
       <Card>
         <div className="mb-4">
           <p className="text-slate-500">Question {currentQuestionIndex + 1}/{PROBLEM_TYPE_QUESTIONS.length}</p>
@@ -80,9 +87,16 @@ const ProblemTypesSection: React.FC = () => {
         </div>
         <div className="space-y-4 mb-6">
           {currentQuestion.options.map((option, index) => (
-            <div key={index} onClick={() => handleOptionSelect(index)} className={getOptionClasses(index)}>
+            <button
+              key={index}
+              type="button"
+              onClick={() => handleOptionSelect(index)}
+              disabled={isAnswered}
+              className={`${getOptionClasses(index)} focus:outline-none focus:ring-2 focus:ring-sky-400`}
+              aria-label={`Option ${index + 1}: ${option.text}`}
+            >
               {option.text}
-            </div>
+            </button>
           ))}
         </div>
         

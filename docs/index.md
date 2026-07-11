@@ -14,8 +14,20 @@ AlgoQuest is the **education-facing interface** for a broader SecuredMe classroo
 ## Start here
 
 - **Run the app:** `npm install` then `npm run dev`.
-- **Run the docs site:** `python -m mkdocs build --strict` (or serve with your local mkdocs flow).
+- **Run the docs site:** `python -m mkdocs build --strict` (or your local mkdocs serve flow).
 - **Read runtime behavior:** this documentation set and `README.md` (repository root).
+- **Run all checks:** `npm test`.
+
+### Fast start by persona
+
+- **For learners (`/student`)**
+  - Start with EducationHub at `/student`.
+  - Choose `student_minor` or `student_adult` in the left rail.
+  - Open **Learning Lab** to access quiz, build, performance, paradigms, and innovation modules.
+- **For teachers (`/teacher`)**
+  - Start at `/teacher`.
+  - Review redacted planning signals + suite install queue.
+  - Verify no raw learner artifact is exposed.
 
 ## What this site documents
 
@@ -33,11 +45,18 @@ AlgoQuest is the **education-facing interface** for a broader SecuredMe classroo
   - learning lab modules,
   - role-aware surface behaviors.
 
+### Current quality notes
+
+- This repository is currently pre-alpha; behavior is deterministic and local-first.
+- Interoperability is contract-driven with local secret-screening rules.
+- Future changes should preserve suite tool identifiers and storage keys for integration continuity.
+
 ## Quick links
 
 - [Edge User Console](accessibility/edge-user-console.md)
 - [Neurodivergent Comfort](accessibility/neurodivergent-comfort.md)
 - [Project README](https://github.com/SeCuReDmE-main-dev/algoquest-ams-discovry-labs-module-#readme)
+- [Architecture details](architecture.md)
 
 ## Developer notes
 
