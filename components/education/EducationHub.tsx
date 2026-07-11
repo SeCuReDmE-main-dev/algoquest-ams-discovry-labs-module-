@@ -27,6 +27,8 @@ import {
 import {
   EducationMetricsEnvelope,
   EducationSurface,
+  ConsentScope,
+  GatewayInstallSequence,
   GatewayRole,
   GuardianArtifactPointer,
   QbitIntervention,
@@ -59,6 +61,43 @@ const StatusPill: React.FC<{ label: string; tone?: 'green' | 'blue' | 'amber' | 
     slate: 'border-slate-200 bg-white text-slate-700',
   };
   return <span className={`inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold ${tones[tone]}`}>{label}</span>;
+};
+
+const audienceCopy = (role: GatewayRole) =>
+  role === 'student_minor'
+    ? { label: 'Beginner-safe student workflow', tone: 'blue' as const }
+    : role === 'student_adult'
+      ? { label: 'Adult learner workflow', tone: 'slate' as const }
+      : { label: 'Teacher planning workflow', tone: 'green' as const };
+
+const offerCopy = (status: GatewayInstallSequence['doctor_status']): string =>
+  status === 'passed' ? 'Doctor checks passed' : 'Doctor checks failed';
+
+const sequenceCopy = (status: GatewayInstallSequence['algoquest_offer_status']): string => {
+  if (status === 'enable_for_this_tool') {
+    return 'Enable only for the selected tool';
+  }
+  if (status === 'enable_for_suite') {
+    return 'Enable for the full suite after secure onboarding';
+  }
+  return 'Offer skipped for now';
+};
+
+const ConsentScopeBadge: React.FC<{ scope: ConsentScope }> = ({ scope }) => (
+  <StatusPill label={`consent: ${scope}`} tone={scope === 'none' ? 'amber' : 'blue'} />
+);
+
+const roleLabel = (role: GatewayRole): string =>
+  role === 'student_minor' ? 'Minor learner profile' : role === 'student_adult' ? 'Adult learner profile' : 'Teacher profile';
+
+const roleDescription = (role: GatewayRole): string => {
+  if (role === 'student_minor') {
+    return 'Beginner-safe flow, step-by-step defaults, no advanced planning assumptions.';
+  }
+  if (role === 'student_adult') {
+    return 'Adult learner flow with full content depth and independent pacing.';
+  }
+  return 'Teacher-first view focused on aggregate planning signals.';
 };
 
 const QbitPanel: React.FC<{
@@ -264,8 +303,22 @@ const TeacherSurface: React.FC<{
 );
 
 const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface, onOpenLearningLab }) => {
-  const [qbitEnabled, setQbitEnabled] = useState<boolean>(getConsentScope(installSequence) !== 'none');
+  const [activeInstallSequence, setActiveInstallSequence] = useState<GatewayInstallSequence>({ ...installSequence, selected_tool_status: installSequence.selected_tool_status });
+  const [qbitEnabled, setQbitEnabled] = useState<boolean>(getConsentScope(activeInstallSequence) !== 'none');
   const [reducedMotion, setReducedMotion] = useState<boolean>(true);
+  const [sessionRole, setSessionRole] = useState<GatewayRole>(() => {
+    const searchRole = new URLSearchParams(window.location.search).get('role') as GatewayRole | null;
+    if (searchRole === 'student_adult' || searchRole === 'student_minor' || searchRole === 'teacher') {
+      if (surface === 'teacher') {
+        return 'teacher';
+      }
+      if (searchRole === 'teacher') {
+        return 'student_minor';
+      }
+      return searchRole;
+    }
+    return surface === 'teacher' ? 'teacher' : 'student_minor';
+  });
   const learningEvent = useMemo(() => readLatestVadLearningEvent(vadValidatedAlgorithmEvent), []);
   const guardianPointer = useMemo(() => readLatestGuardianPointer(), []);
   const planningEvent = useMemo(
@@ -275,14 +328,35 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
   const studentMetricRows = useMemo(() => buildStudentMetricsFromLearningEvent(learningEvent), [learningEvent]);
   const teacherMetricRows = useMemo(() => buildTeacherMetricsFromLearningEvent(learningEvent), [learningEvent]);
 
-  const session = useMemo(() => {
-    const searchRole = new URLSearchParams(window.location.search).get('role') as GatewayRole | null;
-    const role = searchRole || (surface === 'teacher' ? 'teacher' : 'student_minor');
-    return buildSession(role, surface);
-  }, [surface]);
+  const session = useMemo(() => buildSession(surface === 'teacher' ? 'teacher' : sessionRole, surface), [surface, sessionRole]);
 
   const guardErrors = validateGatewayContext(session, surface);
   const expectedSurface = expectedSurfaceForRole(session.role);
+  const audience = audienceCopy(session.role);
+  const consentScope = getConsentScope(activeInstallSequence);
+
+  const installScopeTitle = sequenceCopy(activeInstallSequence.algoquest_offer_status);
+
+  const applyOffer = (nextOffer: GatewayInstallSequence['algoquest_offer_status']) => {
+    const nextState: GatewayInstallSequence = {
+      ...activeInstallSequence,
+      algoquest_offer_status: nextOffer,
+      selected_tool_status: nextOffer === 'skip_for_now' ? 'blocked' : 'installed',
+    };
+    const nextScope = getConsentScope(nextState);
+    setActiveInstallSequence(nextState);
+    setQbitEnabled(nextScope !== 'none');
+  };
+
+  const setRole = (nextRole: GatewayRole) => {
+    if (surface !== 'teacher' && (nextRole === 'student_minor' || nextRole === 'student_adult')) {
+      setSessionRole(nextRole);
+      const params = new URLSearchParams(window.location.search);
+      params.set('role', nextRole);
+      const query = params.toString();
+      window.history.replaceState({}, '', `/${surface}${query ? `?${query}` : ''}`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
@@ -302,6 +376,13 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
             <StatusPill label="Gateway WebAuth verified" tone="green" />
             <StatusPill label={`role ${session.role}`} tone="blue" />
             <StatusPill label={`expected /${expectedSurface}`} tone="slate" />
+            <StatusPill label={audience.label} tone={audience.tone} />
+            <ConsentScopeBadge scope={consentScope} />
+            {surface === 'student' && (
+              <p className="px-2 text-xs font-semibold leading-5 text-slate-600">
+                {roleDescription(sessionRole)}
+              </p>
+            )}
           </div>
 
           <nav className="mt-8 space-y-2" aria-label="Education surfaces">
@@ -329,6 +410,32 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
             </button>
           </nav>
 
+          {surface === 'student' && (
+            <div className="mt-8 rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Learner profile</p>
+              <div className="mt-3 grid gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRole('student_minor')}
+                  className={`rounded-md border px-3 py-2 text-left text-sm font-semibold ${
+                    sessionRole === 'student_minor' ? 'bg-slate-950 text-white' : 'bg-white text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  {roleLabel('student_minor')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole('student_adult')}
+                  className={`rounded-md border px-3 py-2 text-left text-sm font-semibold ${
+                    sessionRole === 'student_adult' ? 'bg-slate-950 text-white' : 'bg-white text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  {roleLabel('student_adult')}
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="mt-8 rounded-lg border border-slate-200 bg-slate-50 p-3">
             <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Install order</p>
             <ol className="mt-3 space-y-2 text-sm font-semibold text-slate-700">
@@ -340,6 +447,55 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
               ))}
             </ol>
           </div>
+
+          <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3">
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Gateway contract snapshot</p>
+            <ul className="mt-3 space-y-2 text-sm text-slate-700">
+              <li className="flex items-start justify-between gap-2">
+                <span>Doctor check</span>
+                <span className="font-semibold">{offerCopy(activeInstallSequence.doctor_status)}</span>
+              </li>
+              <li className="flex items-start justify-between gap-2">
+                <span>AlgoQuest offer</span>
+                <span className="font-semibold">{installScopeTitle}</span>
+              </li>
+              <li className="flex items-start justify-between gap-2">
+                <span>Target tool</span>
+                <span className="font-semibold">{activeInstallSequence.requested_tool_slug}</span>
+              </li>
+              <li className="flex items-start justify-between gap-2">
+                <span>Selection state</span>
+                <span className="font-semibold">{activeInstallSequence.selected_tool_status}</span>
+              </li>
+              <li className="flex items-start justify-between gap-2">
+                <span>Choice record</span>
+                <span className="font-semibold">{activeInstallSequence.dry_run ? 'dry-run only' : 'persisted'}</span>
+              </li>
+            </ul>
+            <div className="mt-3 grid gap-2">
+              <button
+                type="button"
+                onClick={() => applyOffer('enable_for_this_tool')}
+                className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900 hover:bg-emerald-100"
+              >
+                Enable for this tool
+              </button>
+              <button
+                type="button"
+                onClick={() => applyOffer('enable_for_suite')}
+                className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs font-bold text-sky-900 hover:bg-sky-100"
+              >
+                Enable for suite
+              </button>
+              <button
+                type="button"
+                onClick={() => applyOffer('skip_for_now')}
+                className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
+              >
+                Skip for now
+              </button>
+            </div>
+          </div>
         </aside>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
@@ -348,7 +504,9 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
               <h1 className="text-3xl font-black text-slate-950">{surface === 'student' ? 'Student Algorithm Path' : 'Teacher Planning Surface'}</h1>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
                 {surface === 'student'
-                  ? 'A beginner-safe path from a validated algorithm artifact to the next AlgoQuest action.'
+                  ? session.role === 'student_adult'
+                    ? 'A safe but non-restrictive transition from a validated Visual Algorithm Designer artifact to your next study action.'
+                    : 'A structured path from a validated Visual Algorithm Designer artifact to your next AlgoQuest action.'
                   : 'A redacted planning surface built from aggregate learning events and contract-safe metrics.'}
               </p>
             </div>

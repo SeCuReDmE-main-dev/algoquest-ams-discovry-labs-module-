@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../Neutrino_Chamber_Lab"
+		},
+		{
+			"path": "../../../FNP-QNN-MVP/FNP-QNN-MVP"
+		},
+		{
+			"path": "../../../Synthia/Synthia"
+		},
+		{
+			"path": "../../../VisualAlgorithmDesigner"
+		},
+		{
+			"path": "../.."
+		}
+	],
+	"settings": {}
+}

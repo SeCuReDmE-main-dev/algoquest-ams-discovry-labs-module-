@@ -10,8 +10,8 @@ const HomeSection: React.FC<HomeSectionProps> = ({ onNavigate }) => {
   return (
     <div className="space-y-8">
       <header className="text-center">
-        <h1 className="text-5xl font-black text-slate-800 mb-2">Welcome to AlgoQuest!</h1>
-        <p className="text-xl text-slate-600">Your interactive journey into the world of algorithms.</p>
+        <h1 className="text-5xl font-black text-slate-800 mb-2">Welcome to AlgoQuest</h1>
+        <p className="text-xl text-slate-600">A structured path into algorithmic thinking for every level of learner.</p>
       </header>
       
       <Card>
@@ -24,23 +24,23 @@ const HomeSection: React.FC<HomeSectionProps> = ({ onNavigate }) => {
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card className="flex flex-col">
-          <h2 className="text-2xl font-bold text-sky-600 mb-3">Start Your Quest</h2>
+          <h2 className="text-2xl font-bold text-sky-600 mb-3">Start Learning</h2>
           <p className="text-slate-600 mb-4 flex-grow">Begin with the basics. Learn what algorithms are and the types of problems they solve.</p>
           <button 
             onClick={() => onNavigate(SectionId.ProblemTypes)}
             className="mt-auto w-full bg-sky-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-sky-600 transition-colors"
           >
-            Explore Problem Types
+            Open Problem Types
           </button>
         </Card>
         <Card className="flex flex-col">
           <h2 className="text-2xl font-bold text-teal-600 mb-3">Build an Algorithm</h2>
-          <p className="text-slate-600 mb-4 flex-grow">Get hands-on experience by constructing your own algorithm step-by-step.</p>
+          <p className="text-slate-600 mb-4 flex-grow">Practice by constructing your own algorithm step-by-step.</p>
           <button 
             onClick={() => onNavigate(SectionId.BuildAlgo)}
             className="mt-auto w-full bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600 transition-colors"
           >
-            Start Building
+            Open Builder
           </button>
         </Card>
       </div>
