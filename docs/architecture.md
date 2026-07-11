@@ -9,6 +9,7 @@ This page is a practical map of how AlgoQuest is implemented in this repository.
   - `showLearningLab` as a mode switch.
 - `EducationHub` is the default surface for both `student` and `teacher`.
 - Learning lab mode uses section navigation (`home`, `problem-types`, `build-algo`, `performance`, `paradigms`, `innovation`) with local components.
+- Query args drive local install/role context (`?tool`, `?role`) for repeatable testing and debug seeding.
 
 | Surface | Entry | Purpose |
 | --- | --- | --- |
@@ -28,6 +29,10 @@ This page is a practical map of how AlgoQuest is implemented in this repository.
 - **Build planning event:** `buildTeacherPlanningFromLearningEvent`
 
 `EducationHub` can now also target a specific suite app as `requested_tool_slug` and keeps that target in local contract state.
+`selected_tool_status` transitions are rendered in teacher queue state as:
+- `all` for suite scope,
+- `selected` for installed target,
+- `waiting` for queued entries.
 
 ## Local storage contracts
 
@@ -85,8 +90,11 @@ Defined in `types.ts` and validated/created by `services/qbitCompanion.ts`:
 Before release, run:
 
 ```powershell
+npm run validate
+# or run equivalent explicit steps:
 npm run build
+npx tsc --noEmit
 python -m mkdocs build --strict
 ```
 
-Both command paths should succeed for this module’s current state.
+`npm test` is alias to `npm run validate` and should stay green before merge.

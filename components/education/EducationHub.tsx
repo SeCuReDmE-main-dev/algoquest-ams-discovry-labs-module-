@@ -384,7 +384,7 @@ const TeacherSurface: React.FC<{
         onSkip={onSkipQbit}
       />
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h3 className="text-sm font-black text-slate-900">11 app connection queue</h3>
+        <h3 className="text-sm font-black text-slate-900">{suiteAppsToConnect.length} app connection queue</h3>
         <SuiteConnectionQueue
           tools={suiteAppsToConnect}
           requestedTool={requestedTool}
