@@ -1,5 +1,29 @@
 # AlgoQuest Qbit Education
 
+[![SecuredMe Education Suite public calendar](https://img.shields.io/badge/SecuredMe%20Education%20Suite-public%20calendar%20%7C%20alpha%20Aug%203%202026-5484ED?style=for-the-badge&logo=googlecalendar&logoColor=white)](https://calendrier.securedme.ca)
+
+**Attribution:** Jean-Sebastien Beaulieu · [ORCID 0009-0007-2904-0443](https://orcid.org/0009-0007-2904-0443) · [SecuredMe](https://securedme.ca) · [AlgoQuest](https://algoquest.securedme.ca)
+
+<!-- SECUREDME-SUITE-BADGES:START -->
+[![Issues](https://img.shields.io/github/issues/SeCuReDmE-main-dev/algoquest-ams-discovry-labs-module-?color=161B6A)](https://github.com/SeCuReDmE-main-dev/algoquest-ams-discovry-labs-module-/issues)
+[![Milestones](https://img.shields.io/badge/milestones-M0--M7-23B8FF)](https://github.com/SeCuReDmE-main-dev/algoquest-ams-discovry-labs-module-/milestones)
+[![Project Board](https://img.shields.io/badge/project-kanban-6F42FF)](https://github.com/users/SeCuReDmE-main-dev/projects/3)
+[![Branch](https://img.shields.io/badge/branch-main-0E7490)](https://github.com/SeCuReDmE-main-dev/algoquest-ams-discovry-labs-module-/tree/main)
+<!-- SECUREDME-SUITE-BADGES:END -->
+
+<!-- SECUREDME-STARTUP-SUPPORT:START -->
+<p align="center">
+  <a href="https://e2b.dev/startups">
+    <img alt="Gateway-ready E2B audit lane" src="https://img.shields.io/badge/Gateway--ready-E2B%20audit%20lane-FF8800?style=for-the-badge" />
+  </a>
+  <a href="https://www.datadoghq.com/partner/datadog-for-startups/">
+    <img alt="Gateway-ready Datadog observability" src="https://img.shields.io/badge/Gateway--ready-Datadog%20observability-632CA6?style=for-the-badge&amp;logo=datadog&amp;logoColor=white" />
+  </a>
+</p>
+
+> **Gateway support acknowledgement.** This SecuredMe school tool is gateway-compatible. E2B audit support and Datadog observability are routed through the shared SecuredMe gateway when that lane is configured; this repository does not claim a direct E2B or Datadog runtime dependency by default, and no E2B or Datadog secret is stored in this README.
+<!-- SECUREDME-STARTUP-SUPPORT:END -->
+
 ## 0) One-line status
 
 **AlgoQuest Qbit Education** is the education runtime for the SecuredMe suite.
@@ -16,7 +40,7 @@ The repo now has:
 
 - A dual-surface runtime (`/student`, `/teacher`)
 - A contract-first interoperability layer with local storage contracts
-- A suite-connect decision surface with 11 app queue support
+- A suite-connect decision surface with 12 app queue support
 - A local Learning Lab (6 sections) with keyboard navigation
 - MkDocs + accessibility controls + theme controls
 - A strict local secret-safety posture (no raw student secrets in records)
@@ -125,7 +149,7 @@ python -m mkdocs build --strict
 
 - Default seed fixture: `buildInstallSequence('visual-algorithm', 'student_minor', 'enable_for_suite')`
 - Queue apps (`suiteAppsToConnect`):
-  `visual-algorithm`, `vot-guardian`, `algorithm-builder`, `fnpqnn`, `gateway`, `ffed-qlc`, `quanthor`, `synthia`, `scholarium`, `market-guardian`, `tesla-workbench`, plus current target context handling.
+  `algoquest`, `visual-algorithm`, `vot-guardian`, `algorithm-builder`, `fnpqnn`, `gateway`, `ffed-qlc`, `quanthor`, `synthia`, `scholarium`, `market-guardian`, and `tesla-workbench`, plus current target context handling.
 - Consent mapping:
   - `skip_for_now` => `none`
   - `enable_for_this_tool` => `tool`
