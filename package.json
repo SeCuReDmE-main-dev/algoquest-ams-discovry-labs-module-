@@ -8,7 +8,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "validate": "npm run build && npx tsc --noEmit && python -m mkdocs build --strict",
-    "test": "npm run validate"
+    "test": "npm run validate",
+    "cpai:start": "powershell -NoProfile -ExecutionPolicy Bypass -File infra/codeproject-ai/start.ps1",
+    "cpai:health": "node infra/codeproject-ai/client.mjs health",
+    "cpai:mesh": "node infra/codeproject-ai/client.mjs mesh",
+    "cpai:stop": "powershell -NoProfile -ExecutionPolicy Bypass -File infra/codeproject-ai/stop.ps1"
   },
   "dependencies": {
     "react": "^19.1.0",
