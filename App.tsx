@@ -55,8 +55,15 @@ const LAB_MODULES = [
 ];
 
 type UtilityTheme = 'night' | 'day';
-type UtilityLanguage = 'en' | 'fr';
+type UtilityLanguage = 'en' | 'fr' | 'es';
 type UtilityAccess = 'base' | 'autism-calm' | 'adhd-sprint' | 'deep-work';
+
+const LANGUAGE_ORDER: UtilityLanguage[] = ['en', 'fr', 'es'];
+const LANGUAGE_LABELS: Record<UtilityLanguage, string> = {
+  en: 'Language: EN',
+  fr: 'Langue: FR',
+  es: 'Idioma: ES',
+};
 
 const ACCESS_ORDER: UtilityAccess[] = ['base', 'autism-calm', 'adhd-sprint', 'deep-work'];
 const ACCESS_LABELS: Record<UtilityAccess, string> = {
@@ -68,7 +75,8 @@ const ACCESS_LABELS: Record<UtilityAccess, string> = {
 
 const UtilityDock: React.FC = () => {
   const [language, setLanguage] = useState<UtilityLanguage>(() => {
-    return window.localStorage.getItem('securedme.algoquest.language') === 'fr' ? 'fr' : 'en';
+    const saved = window.localStorage.getItem('securedme.algoquest.language') as UtilityLanguage | null;
+    return saved && LANGUAGE_ORDER.includes(saved) ? saved : 'en';
   });
   const [theme, setTheme] = useState<UtilityTheme>(() => {
     return window.localStorage.getItem('securedme.algoquest.theme') === 'day' ? 'day' : 'night';
@@ -81,6 +89,7 @@ const UtilityDock: React.FC = () => {
   useEffect(() => {
     window.localStorage.setItem('securedme.algoquest.language', language);
     document.documentElement.lang = language;
+    document.documentElement.dataset.lang = language;
   }, [language]);
 
   useEffect(() => {
@@ -94,6 +103,11 @@ const UtilityDock: React.FC = () => {
     document.documentElement.dataset.access = access;
   }, [access]);
 
+  const nextLanguage = () => {
+    const currentIndex = LANGUAGE_ORDER.indexOf(language);
+    setLanguage(LANGUAGE_ORDER[(currentIndex + 1) % LANGUAGE_ORDER.length]);
+  };
+
   const nextAccess = () => {
     const currentIndex = ACCESS_ORDER.indexOf(access);
     setAccess(ACCESS_ORDER[(currentIndex + 1) % ACCESS_ORDER.length]);
@@ -103,11 +117,11 @@ const UtilityDock: React.FC = () => {
     <aside className="fixed bottom-4 right-4 z-[80] flex max-w-[calc(100vw-2rem)] flex-col items-end gap-2" aria-label="SecuredMe utility controls">
       <button
         type="button"
-        onClick={() => setLanguage((current) => (current === 'en' ? 'fr' : 'en'))}
+        onClick={nextLanguage}
         className="rounded-full border border-amber-200/70 bg-slate-950/90 px-4 py-2 text-xs font-black text-white shadow-lg shadow-slate-950/40 backdrop-blur hover:border-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-200"
-        aria-pressed={language === 'fr'}
+        aria-pressed={language !== 'en'}
       >
-        Language: {language.toUpperCase()}
+        {LANGUAGE_LABELS[language]}
       </button>
       <button
         type="button"
@@ -126,6 +140,8 @@ const UtilityDock: React.FC = () => {
       </button>
       <a
         href="https://securedme.ca/pay/"
+        target="_blank"
+        rel="noopener noreferrer"
         className="rounded-full border border-cyan-300 bg-gradient-to-r from-sky-500 to-violet-600 px-5 py-2 text-xs font-black uppercase tracking-wide text-white shadow-lg shadow-blue-950/50 hover:from-sky-400 hover:to-violet-500 focus:outline-none focus:ring-2 focus:ring-cyan-200"
       >
         Support SecuredMe
@@ -231,17 +247,86 @@ const LandingPage: React.FC<{
               </div>
             </div>
 
-            <div className="relative">
-              <picture>
-                <source media="(prefers-color-scheme: light)" srcSet={landingLight} />
-                <img
-                  src={landingDark}
-                  alt="AlgoQuest owl mascot, Qbit Education wordmark, and learning-path visual identity"
-                  className="w-full rounded-lg border border-blue-300/20 object-cover shadow-2xl shadow-blue-950/80"
-                />
-              </picture>
-              <div className="absolute bottom-4 left-4 rounded-md border border-slate-200/20 bg-slate-950/80 px-3 py-2 text-xs font-black uppercase tracking-wide text-slate-200 backdrop-blur">
-                Local contracts · no raw learner secrets
+            <div className="relative rounded-xl border border-sky-400/30 bg-slate-950/85 p-5 shadow-2xl shadow-sky-950/80 backdrop-blur">
+              <div className="flex items-center justify-between border-b border-sky-500/20 pb-3 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]"></span>
+                  <span className="font-black tracking-wider text-cyan-400 uppercase">ALGOQUEST ACTIVE</span>
+                </div>
+                <span className="font-bold text-slate-200">Qbit Algorithm Telemetry Workspace</span>
+                <span className="rounded border border-cyan-400/40 bg-cyan-400/10 px-2 py-0.5 font-black tracking-wider text-cyan-300 text-[10px]">LIVE PREVIEW</span>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="rounded-lg border border-slate-800 bg-slate-900/80 p-2.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Active Module</p>
+                  <p className="font-mono text-sm font-black text-cyan-300">03 Build Algo</p>
+                </div>
+                <div className="rounded-lg border border-slate-800 bg-slate-900/80 p-2.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Step Order</p>
+                  <p className="font-mono text-sm font-black text-amber-300">4/4 Validated</p>
+                </div>
+                <div className="rounded-lg border border-slate-800 bg-slate-900/80 p-2.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Complexity</p>
+                  <p className="font-mono text-sm font-black text-violet-300">O(n log n)</p>
+                </div>
+                <div className="rounded-lg border border-slate-800 bg-slate-900/80 p-2.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Privacy Gate</p>
+                  <p className="font-mono text-sm font-black text-emerald-400">ADMITTED</p>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-lg border border-sky-400/20 bg-slate-900/90 p-4">
+                <div className="flex items-center justify-between text-xs text-slate-300 mb-2">
+                  <span className="font-bold text-sky-300">Array Sorting & Search Pipeline</span>
+                  <span className="font-mono text-[11px] text-slate-400">Step 3: Compare & Pivot</span>
+                </div>
+                <svg className="w-full h-40" viewBox="0 0 460 160" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="bar-cyan" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.9"/>
+                      <stop offset="100%" stopColor="#0284c7" stopOpacity="0.4"/>
+                    </linearGradient>
+                    <linearGradient id="bar-gold" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#ffb703" stopOpacity="1"/>
+                      <stop offset="100%" stopColor="#d97706" stopOpacity="0.5"/>
+                    </linearGradient>
+                    <linearGradient id="bar-violet" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#a855f7" stopOpacity="0.9"/>
+                      <stop offset="100%" stopColor="#6366f1" stopOpacity="0.4"/>
+                    </linearGradient>
+                  </defs>
+
+                  {/* Comparison Bars */}
+                  <rect x="30" y="70" width="38" height="70" rx="4" fill="url(#bar-cyan)"/>
+                  <text x="49" y="62" textAnchor="middle" fill="#00f0ff" fontSize="10" fontWeight="bold">12</text>
+
+                  <rect x="95" y="40" width="38" height="100" rx="4" fill="url(#bar-cyan)"/>
+                  <text x="114" y="32" textAnchor="middle" fill="#00f0ff" fontSize="10" fontWeight="bold">35</text>
+
+                  <rect x="160" y="20" width="38" height="120" rx="4" fill="url(#bar-gold)"/>
+                  <text x="179" y="12" textAnchor="middle" fill="#ffb703" fontSize="10" fontWeight="bold">48 (Pivot)</text>
+
+                  <rect x="225" y="55" width="38" height="85" rx="4" fill="url(#bar-cyan)"/>
+                  <text x="244" y="47" textAnchor="middle" fill="#00f0ff" fontSize="10" fontWeight="bold">67</text>
+
+                  <rect x="290" y="10" width="38" height="130" rx="4" fill="url(#bar-violet)"/>
+                  <text x="309" y="88" textAnchor="middle" fill="#ffffff" fontSize="10" fontWeight="bold">89</text>
+
+                  <rect x="355" y="30" width="38" height="110" rx="4" fill="url(#bar-cyan)"/>
+                  <text x="374" y="22" textAnchor="middle" fill="#00f0ff" fontSize="10" fontWeight="bold">94</text>
+
+                  {/* Baseline */}
+                  <line x1="20" y1="142" x2="420" y2="142" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5"/>
+                </svg>
+              </div>
+
+              <div className="mt-4 flex flex-wrap justify-end gap-2">
+                {['Qbit Engine', 'Privacy-Safe Aggregation', 'Student & Teacher Surfaces', 'Local Contracts'].map((chip) => (
+                  <span key={chip} className="rounded-full border border-sky-400/30 bg-slate-900/90 px-3 py-1 text-[11px] font-bold text-slate-200">
+                    {chip}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
