@@ -1,0 +1,36 @@
+schema: securedme.tool-doc.v2
+slug: algoquest-qbit
+title: AlgoQuest Qbit Education
+version: 0.0.0
+status: public-preview
+license: LicenseRef-SEL-2.0
+summary: Interactive algorithm learning through bounded, inspectable challenges for
+  students and teachers.
+identity:
+  logo: assets/brand-selected/algoquest-logo-lockup.png
+  family: AlgoQuest Qbit Education
+runtime:
+  type: browser-app
+  availability: verified
+  public_url: https://algoquest.securedme.ca
+source:
+  repository: https://github.com/SeCuReDmE-main-dev/algoquest-ams-discovry-labs-module-
+  issues: https://github.com/SeCuReDmE-main-dev/algoquest-ams-discovry-labs-module-/issues
+documentation:
+  public_root: docs/public
+  source_language: en
+  languages:
+  - en
+  - fr
+  - es
+commands:
+  install:
+  - npm install
+  start:
+  - npm run dev
+  test:
+  - npm test
+boundaries:
+  authority: Learning output is formative evidence. It is not a credential, assessment
+    authority, or autonomous teaching decision.
+  human_review_required: true
