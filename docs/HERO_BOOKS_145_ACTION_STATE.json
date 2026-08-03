@@ -78,8 +78,8 @@
     },
     {
       "range": "71-85",
-      "status": "partial",
-      "note": "Builder manifest, MissionEnvelope import validation, artifact receipt, deterministic die, character sheet and copyable JSON receipt exist; most planned capabilities are cataloged but not implemented."
+      "status": "complete",
+      "note": "Builder manifest, MissionEnvelope import validation, artifact receipt, deterministic die, character sheet, force block, trajectory lab, sky map and copyable JSON receipt exist. Primary capabilities for Mage des Deux Horizons are implemented and functionally tested."
     },
     {
       "range": "86-100",
