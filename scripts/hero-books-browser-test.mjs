@@ -8,6 +8,7 @@ import { chromium } from '@playwright/test';
 const port = 4173;
 const baseUrl = `http://127.0.0.1:${port}`;
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const readinessTimeoutMs = Number.parseInt(process.env.HERO_BOOKS_BROWSER_TIMEOUT_MS || '30000', 10);
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -29,9 +30,9 @@ async function waitForServer(url, timeoutMs = 30000) {
 
 const server = spawn(
   process.execPath,
-  ['node_modules/vite/bin/vite.js', 'preview', '--host', '127.0.0.1', '--port', String(port), '--strictPort'],
+  [path.join(repoRoot, 'node_modules/vite/bin/vite.js'), 'preview', '--host', '127.0.0.1', '--port', String(port), '--strictPort'],
   {
-    cwd: process.cwd(),
+    cwd: repoRoot,
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
   },
@@ -85,14 +86,31 @@ try {
   server.kill();
 }
 
-async function expectVisibleText(page, text) {
-  await page.getByText(text, { exact: false }).first().waitFor({ state: 'visible', timeout: 10000 });
+async function waitForHeroBooksReady(page, profileName) {
+  const heroBooks = page.locator('#hero-books');
+  await heroBooks.waitFor({ state: 'attached', timeout: readinessTimeoutMs });
+  await heroBooks.waitFor({ state: 'visible', timeout: readinessTimeoutMs });
+  for (const readyText of [
+    'Hero Books proof line',
+    'Mission envelope export',
+    'Builder receipt import',
+    'Colab notebook round trip',
+    'Privacy & Permissions Ledger',
+  ]) {
+    await heroBooks.getByText(readyText, { exact: false }).first().waitFor({ state: 'visible', timeout: readinessTimeoutMs });
+  }
+  assert.ok(await heroBooks.getByLabel('Mission envelope JSON export for Algorithm Builder').isVisible({ timeout: readinessTimeoutMs }), `${profileName} Hero Books section should finish hydrating`);
+}
+
+async function expectVisibleText(page, text, timeout = readinessTimeoutMs) {
+  await page.getByText(text, { exact: false }).first().waitFor({ state: 'visible', timeout });
 }
 
 async function runHeroBooksFlow(page, profileName, { performanceBudget = false } = {}) {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const startedAt = Date.now();
-  await page.goto(baseUrl, { waitUntil: 'networkidle' });
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: readinessTimeoutMs });
+  await waitForHeroBooksReady(page, profileName);
   const loadElapsedMs = Date.now() - startedAt;
 
   await expectVisibleText(page, 'Hero Books proof line');
