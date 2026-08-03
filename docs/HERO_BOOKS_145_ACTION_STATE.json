@@ -83,8 +83,8 @@
     },
     {
       "range": "86-100",
-      "status": "partial",
-      "note": "First Mage prompt bank, assignment, one-use consumption, local version conflict guard and 100 replay test exist; full 40-prompt adaptation remains incomplete."
+      "status": "complete",
+      "note": "First Mage prompt bank, assignment, one-use consumption, local version conflict guard and 100 replay test exist. Full 40-prompt adaptation for Mage des Deux Horizons is complete."
     },
     {
       "range": "101-115",

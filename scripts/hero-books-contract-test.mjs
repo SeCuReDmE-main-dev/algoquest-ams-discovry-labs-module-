@@ -95,7 +95,7 @@ for (const world of heroWorldRegistry) {
   assert.ok(Array.isArray(world.certified_locales), `world ${world.hero_book_id} must declare certified locales`);
 }
 
-assert.equal(mageTwoHorizonsPrimaryFr.prompt_nodes.length, 12, 'first proof uses twelve real prompts');
+assert.equal(mageTwoHorizonsPrimaryFr.prompt_nodes.length, 40, 'first proof uses forty real prompts');
 assert.equal(mageEntryMissionManifest.success_is_time_based, false, 'fifteen minutes is not a pass/fail rule');
 assert.equal(mageMissionEnvelope.canonical_state_owner, 'algoquest', 'AlgoQuest owns canonical state');
 assert.equal(mageMissionEnvelope.artifact_owner, 'algorithm-builder-or-colab', 'Builder or Colab owns artifacts only');
