@@ -8,7 +8,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "validate": "npm run build && npx tsc --noEmit && python -m mkdocs build --strict",
-    "test": "npm run validate",
+    "test": "node scripts/hero-books-contract-test.mjs && npm run hero-books:a11y-static && npm run validate && npm run hero-books:browser && npm run hero-books:gate",
+    "hero-books:gate": "node scripts/hero-books-pre-alpha-gate.mjs",
+    "hero-books:a11y-static": "node scripts/hero-books-accessibility-static-test.mjs",
+    "hero-books:browser": "node scripts/hero-books-browser-test.mjs",
     "cpai:start": "powershell -NoProfile -ExecutionPolicy Bypass -File infra/codeproject-ai/start.ps1",
     "cpai:health": "node infra/codeproject-ai/client.mjs health",
     "cpai:mesh": "node infra/codeproject-ai/client.mjs mesh",
@@ -19,6 +22,7 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^22.14.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"

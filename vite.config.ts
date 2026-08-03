@@ -8,6 +8,11 @@ const __dirname = path.dirname(__filename);
 export default defineConfig({
   root: __dirname,
   base: './',
+  server: {
+    watch: {
+      usePolling: true,
+    },
+  },
   resolve: {
     preserveSymlinks: true,
     alias: {

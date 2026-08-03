@@ -49,6 +49,38 @@ export interface StudentLearningEvent {
   raw_secret_stored: false;
 }
 
+export interface AlgorithmArtifactReceipt {
+  schema: 'securedme.education.algorithm-builder.algorithm-artifact-receipt.v1';
+  receipt_id: string;
+  source_app: 'algorithm-builder';
+  target_app: 'algoquest';
+  mission_id: string;
+  hero_book_id: string;
+  capability_refs: string[];
+  graph: {
+    nodes: Array<{
+      id: string;
+      type: string;
+      properties?: Record<string, string | number | boolean | string[] | number[] | boolean[]>;
+    }>;
+    edges: Array<{
+      from?: string;
+      to?: string;
+      id?: string;
+      type?: string;
+    }>;
+  };
+  tests: Array<{
+    test_id: string;
+    status: 'passed' | 'failed' | 'skipped';
+  }>;
+  artifact_digest: string;
+  contract_version: 'v1';
+  raw_secret_stored: false;
+  raw_payload_embedded: false;
+  dry_run: true;
+}
+
 export interface GuardianArtifactPointer {
   schema: 'securedme.education.artifact-pointer.v1';
   pointer_id: string;

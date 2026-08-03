@@ -1,4 +1,5 @@
 import {
+  AlgorithmArtifactReceipt,
   EducationMetricsEnvelope,
   GatewayInstallSequence,
   GuardianArtifactPointer,
@@ -13,6 +14,7 @@ import {
 } from './qbitCompanion';
 
 export const ALGOQUEST_OUTBOX_STORAGE_KEY = 'securedme.education.algoquest.outbox.v1';
+export const BUILDER_ARTIFACT_OUTBOX_STORAGE_KEY = 'securedme.education.algoquest.algorithm-artifact.outbox.v1';
 export const GUARDIAN_OUTBOX_STORAGE_KEY = 'securedme.education.vot-guardian.outbox.v1';
 export const INSTALL_SEQUENCE_STORAGE_KEY = 'securedme.education.algoquest.install-sequence.v1';
 
@@ -90,6 +92,41 @@ export function isGuardianArtifactPointer(value: unknown): value is GuardianArti
   );
 }
 
+export function isAlgorithmArtifactReceipt(value: unknown): value is AlgorithmArtifactReceipt {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const graph = value.graph;
+  const tests = value.tests;
+  return (
+    value.schema === 'securedme.education.algorithm-builder.algorithm-artifact-receipt.v1' &&
+    value.source_app === 'algorithm-builder' &&
+    value.target_app === 'algoquest' &&
+    typeof value.receipt_id === 'string' &&
+    value.receipt_id.startsWith('algorithm-artifact:') &&
+    typeof value.mission_id === 'string' &&
+    value.mission_id.length > 0 &&
+    typeof value.hero_book_id === 'string' &&
+    value.hero_book_id.length > 0 &&
+    Array.isArray(value.capability_refs) &&
+    value.capability_refs.every((capability) => typeof capability === 'string') &&
+    isRecord(graph) &&
+    Array.isArray(graph.nodes) &&
+    graph.nodes.length > 0 &&
+    Array.isArray(graph.edges) &&
+    Array.isArray(tests) &&
+    tests.every((test) => isRecord(test) && typeof test.test_id === 'string' && ['passed', 'failed', 'skipped'].includes(String(test.status))) &&
+    typeof value.artifact_digest === 'string' &&
+    value.artifact_digest.startsWith('sha256:') &&
+    value.contract_version === 'v1' &&
+    value.raw_secret_stored === false &&
+    value.raw_payload_embedded === false &&
+    value.dry_run === true &&
+    !hasSecretLikeField(value)
+  );
+}
+
 export function isGatewayInstallSequence(value: unknown): value is GatewayInstallSequence {
   if (!isRecord(value)) {
     return false;
@@ -124,6 +161,10 @@ export function readLatestVadLearningEvent(fallback: StudentLearningEvent): Stud
 
 export function readLatestGuardianPointer(): GuardianArtifactPointer | null {
   return findLatestMatchingEvent(readStorageArray(GUARDIAN_OUTBOX_STORAGE_KEY), isGuardianArtifactPointer);
+}
+
+export function readLatestBuilderArtifactReceipt(): AlgorithmArtifactReceipt | null {
+  return findLatestMatchingEvent(readStorageArray(BUILDER_ARTIFACT_OUTBOX_STORAGE_KEY), isAlgorithmArtifactReceipt);
 }
 
 export function readInstallSequenceFromStorage(fallback: GatewayInstallSequence): GatewayInstallSequence {

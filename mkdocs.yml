@@ -62,6 +62,12 @@ plugins:
 nav:
 - Home: index.md
 - Architecture: architecture.md
+- Hero Books Pre-Alpha: hero-books-pre-alpha.md
+- Hero Books Traceability: hero-books-traceability-matrix.md
+- Hero Books 145 Action Audit: hero-books-145-action-audit.md
+- ADR:
+  - AlgoQuest Owns Missions And Evidence: adr/0001-algoquest-owns-missions-and-evidence.md
+  - Builder Is Forge Not Authority: adr/0002-builder-is-forge-not-authority.md
 - Accessibility:
   - Edge User Console: accessibility/edge-user-console.md
   - Neurodivergent Comfort: accessibility/neurodivergent-comfort.md

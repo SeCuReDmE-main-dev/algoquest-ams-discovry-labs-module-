@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { EducationSurface, SectionId } from './types';
+import { AlgorithmArtifactReceipt, EducationSurface, SectionId } from './types';
 import EducationHub from './components/education/EducationHub';
 import HomeSection from './components/sections/HomeSection';
 import ProblemTypesSection from './components/sections/ProblemTypesSection';
@@ -8,6 +8,39 @@ import PerformanceSection from './components/sections/PerformanceSection';
 import ParadigmsSection from './components/sections/ParadigmsSection';
 import InnovationSection from './components/sections/InnovationSection';
 import NavButton from './components/ui/NavButton';
+import { isAlgorithmArtifactReceipt, readLatestBuilderArtifactReceipt } from './services/educationInterop';
+import {
+  advanceEntryMissionState,
+  audienceProfiles,
+  buildOrganizationAggregateProjection,
+  buildStudentProjection,
+  buildTeacherProjection,
+  clearLocalPrivacyReceipts,
+  createDataDeletionReceipt,
+  createAdventureRun,
+  advanceAdventureRuntime,
+  createInitialLearningEvidence,
+  createInitialQuestState,
+  createAdventureRuntime,
+  createKnowledgeTokenTransfer,
+  decideHierarchicalAccess,
+  heroWorldRegistry,
+  persistAdventureRuntime,
+  persistPrivacyReceipt,
+  mageEntryMissionManifest,
+  mageMissionEnvelope,
+  mageColabNotebookManifest,
+  mageTwoHorizonsPrimaryFr,
+  persistEntryMissionState,
+  readAdventureRuntime,
+  readEntryMissionState,
+  readPrivacyReceipts,
+  revokeKnowledgeTokenTransfer,
+  replayAdventureRuntime,
+  renderAsciiScene,
+  isColabRoundTripReceipt,
+  tenebrisPolicy,
+} from './services/heroBooks.js';
 import landingDark from './assets/landing/landing-dark.png';
 import landingLight from './assets/landing/landing-light.png';
 import logoIconDark from './assets/landing/logo-icon-dark.png';
@@ -53,6 +86,13 @@ const LAB_MODULES = [
   ['05', 'Greedy Paradigms', 'Test local choices against path-level consequences.'],
   ['06', 'Future Algorithms', 'Explore school-safe extensions without production claims.'],
 ];
+
+const HERO_BOOK_PROOF = {
+  firstWorld: heroWorldRegistry[0],
+  firstManifest: mageTwoHorizonsPrimaryFr,
+  audienceCount: audienceProfiles.length,
+  tenebrisDefault: tenebrisPolicy.default_status,
+};
 
 type UtilityTheme = 'night' | 'day';
 type UtilityLanguage = 'en' | 'fr' | 'es';
@@ -155,6 +195,41 @@ const LandingPage: React.FC<{
   onOpenLearningLab: () => void;
 }> = ({ onNavigateSurface, onOpenLearningLab }) => {
   const sourceUrl = 'https://github.com/SeCuReDmE-main-dev/algoquest-ams-discovry-labs-module-';
+  const [entryState, setEntryState] = useState(() => readEntryMissionState());
+  const [builderReceipt, setBuilderReceipt] = useState<AlgorithmArtifactReceipt | null>(() => readLatestBuilderArtifactReceipt());
+  const [receiptImport, setReceiptImport] = useState('');
+  const [receiptImportStatus, setReceiptImportStatus] = useState('No imported Builder receipt yet.');
+  const [colabReceiptImport, setColabReceiptImport] = useState('');
+  const [colabReceiptStatus, setColabReceiptStatus] = useState('No imported Colab receipt yet.');
+  const [adventureRuntime, setAdventureRuntime] = useState(() => readAdventureRuntime());
+  const [replayStatus, setReplayStatus] = useState('Replay not run yet.');
+  const [privacyReceipt, setPrivacyReceipt] = useState('No privacy receipt generated yet.');
+  const [privacyReceiptCount, setPrivacyReceiptCount] = useState(() => readPrivacyReceipts().length);
+  const demoRun = createAdventureRun({ seed: 'ui-demo-privacy' });
+  const demoStudentProjection = buildStudentProjection({
+    run: demoRun,
+    quest_state: createInitialQuestState(demoRun),
+    learning_evidence: createInitialLearningEvidence(demoRun),
+    entry_state: entryState,
+  });
+  const demoTeacherProjection = (buildTeacherProjection as any)({
+    assigned_run_ids: [demoStudentProjection.run_id],
+    student_projection: demoStudentProjection,
+  });
+  const demoOrganizationAggregate = buildOrganizationAggregateProjection({ cohort_size: 10, completed_count: 8, blocked_count: 2 });
+  const demoHierarchyAccess = decideHierarchicalAccess({
+    requester_role: 'organization-admin',
+    target_kind: 'teacher-private-activity',
+    cohort_size: 100,
+  });
+
+  useEffect(() => {
+    persistEntryMissionState(entryState);
+  }, [entryState]);
+
+  useEffect(() => {
+    persistAdventureRuntime(adventureRuntime);
+  }, [adventureRuntime]);
 
   const routeSurface = (event: React.MouseEvent<HTMLAnchorElement>, surface: EducationSurface) => {
     event.preventDefault();
@@ -164,6 +239,91 @@ const LandingPage: React.FC<{
   const routeLab = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     onOpenLearningLab();
+  };
+
+  const updateEntry = (
+    state: 'ready' | 'guided' | 'retry' | 'hold' | 'completed' | 'abstain',
+    assistance_level: 'none' | 'hint' | 'guided' | 'worked-example' = entryState.assistance_level,
+    mode: 'textual' | 'guided_notebook' | 'executable_example' = entryState.mode
+  ) => {
+    setEntryState(advanceEntryMissionState(entryState, { state, assistance_level, mode }));
+  };
+
+  const importBuilderReceipt = () => {
+    try {
+      const parsed = JSON.parse(receiptImport);
+      if (!isAlgorithmArtifactReceipt(parsed)) {
+        setReceiptImportStatus('Receipt rejected: invalid contract, secret-like field, or missing digest.');
+        return;
+      }
+      setBuilderReceipt(parsed);
+      setReceiptImportStatus(`Receipt admitted locally: ${parsed.receipt_id}`);
+    } catch {
+      setReceiptImportStatus('Receipt rejected: JSON could not be parsed.');
+    }
+  };
+
+  const importColabReceipt = () => {
+    try {
+      const parsed = JSON.parse(colabReceiptImport);
+      if (!isColabRoundTripReceipt(parsed)) {
+        setColabReceiptStatus('Colab receipt rejected: wrong mission, failed test, secret flag, or missing digest.');
+        return;
+      }
+      setColabReceiptStatus(`Colab receipt admitted locally: ${parsed.receipt_digest.slice(0, 20)}...`);
+    } catch {
+      setColabReceiptStatus('Colab receipt rejected: JSON could not be parsed.');
+    }
+  };
+
+  const currentPromptNode = mageTwoHorizonsPrimaryFr.prompt_nodes.find((node) => node.prompt_id === adventureRuntime.latest_assignment?.prompt_id)
+    ?? mageTwoHorizonsPrimaryFr.prompt_nodes.find((node) => node.prompt_id === adventureRuntime.quest_state.consumed_prompt_ids.at(-1))
+    ?? mageTwoHorizonsPrimaryFr.prompt_nodes[0];
+  const currentAsciiScene = renderAsciiScene(currentPromptNode);
+
+  const advanceAdventure = async () => {
+    const nextRuntime = await advanceAdventureRuntime(adventureRuntime);
+    setAdventureRuntime(nextRuntime);
+  };
+
+  const resetAdventure = () => {
+    setAdventureRuntime(createAdventureRuntime());
+    setReplayStatus('Replay reset.');
+  };
+
+  const replayAdventure = async () => {
+    const report = await replayAdventureRuntime(adventureRuntime);
+    setReplayStatus(`${report.status}: ${report.replayed_state_digest.slice(0, 20)}...`);
+  };
+
+  const generateTokenRevocation = () => {
+    const transfer = createKnowledgeTokenTransfer({
+      token_id: 'token:first-proof',
+      from_run_id: adventureRuntime.run.run_id,
+      consent_scope: 'tool',
+      expires_at: '2026-08-04T00:00:00.000Z',
+    });
+    const receipt = revokeKnowledgeTokenTransfer(transfer);
+    persistPrivacyReceipt(receipt);
+    setPrivacyReceiptCount(readPrivacyReceipts().length);
+    setPrivacyReceipt(JSON.stringify(receipt, null, 2));
+  };
+
+  const generateDeletionReceipt = () => {
+    const receipt = createDataDeletionReceipt({
+      run_id: adventureRuntime.run.run_id,
+      scope: 'local-run',
+      requested_by: 'learner',
+    });
+    persistPrivacyReceipt(receipt);
+    setPrivacyReceiptCount(readPrivacyReceipts().length);
+    setPrivacyReceipt(JSON.stringify(receipt, null, 2));
+  };
+
+  const clearPrivacyReceipts = () => {
+    const receipt = clearLocalPrivacyReceipts({ requested_by: 'learner' });
+    setPrivacyReceiptCount(readPrivacyReceipts().length);
+    setPrivacyReceipt(JSON.stringify(receipt, null, 2));
   };
 
   return (
@@ -178,6 +338,7 @@ const LandingPage: React.FC<{
             <a href="https://securedme.ca/product/education/" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-300">Education</a>
             <a href="#surfaces" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-300">Surfaces</a>
             <a href="#lab" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-300">Learning Lab</a>
+            <a href="#hero-books" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-300">Hero Books</a>
             <a href="#contracts" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-300">Contracts</a>
             <a href="#suite" className="hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-300">Suite</a>
           </nav>
@@ -369,6 +530,190 @@ const LandingPage: React.FC<{
                   <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-blue-500 text-sm font-black text-white">{number}</span>
                   <h3 className="mt-4 text-xl font-black text-white">{title}</h3>
                   <p className="mt-2 text-sm leading-6 text-slate-300">{copy}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="hero-books" className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+          <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
+            <div>
+              <p className="text-xs font-black uppercase tracking-wide text-emerald-300">Hero Books proof line</p>
+              <h2 className="mt-3 text-3xl font-black text-white">A first governed adventure path, not an alpha dependency.</h2>
+              <p className="mt-4 text-sm leading-7 text-slate-300">
+                The first proof is {HERO_BOOK_PROOF.firstWorld.title}: primary 5-6, fr-CA, twelve real prompt nodes,
+                deterministic replay, and a Builder artifact receipt. Story points move the adventure; LearningEvidence stays separate.
+              </p>
+              <div className="mt-5 rounded-lg border border-emerald-300/20 bg-slate-950/65 p-4">
+                <p className="text-sm font-black text-white">{mageEntryMissionManifest.first_objective}</p>
+                <p className="mt-2 text-xs font-bold uppercase tracking-wide text-slate-400">
+                  Entry state: {entryState.state} · mode: {entryState.mode} · help: {entryState.assistance_level}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button type="button" onClick={() => updateEntry(entryState.state, entryState.assistance_level, 'textual')} className="rounded-md border border-slate-600 px-2 py-1 text-[10px] font-black uppercase text-slate-300 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400">Mode Text</button>
+                  <button type="button" onClick={() => updateEntry(entryState.state, entryState.assistance_level, 'guided_notebook')} className="rounded-md border border-slate-600 px-2 py-1 text-[10px] font-black uppercase text-slate-300 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400">Mode Notebook</button>
+                  <button type="button" onClick={() => updateEntry(entryState.state, entryState.assistance_level, 'executable_example')} className="rounded-md border border-slate-600 px-2 py-1 text-[10px] font-black uppercase text-slate-300 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400">Mode Example</button>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button type="button" onClick={() => updateEntry('ready', 'none')} className="rounded-md border border-emerald-300/30 px-3 py-2 text-xs font-black text-emerald-100 hover:bg-emerald-500/10 focus:outline-none focus:ring-2 focus:ring-emerald-200">Ready</button>
+                  <button type="button" onClick={() => updateEntry('guided', 'hint')} className="rounded-md border border-sky-300/30 px-3 py-2 text-xs font-black text-sky-100 hover:bg-sky-500/10 focus:outline-none focus:ring-2 focus:ring-sky-200">Ask Hint</button>
+                  <button type="button" onClick={() => updateEntry('retry', entryState.assistance_level)} className="rounded-md border border-indigo-300/30 px-3 py-2 text-xs font-black text-indigo-100 hover:bg-indigo-500/10 focus:outline-none focus:ring-2 focus:ring-indigo-200">Retry</button>
+                  <button type="button" onClick={() => updateEntry('hold', entryState.assistance_level)} className="rounded-md border border-pink-300/30 px-3 py-2 text-xs font-black text-pink-100 hover:bg-pink-500/10 focus:outline-none focus:ring-2 focus:ring-pink-200">Hold</button>
+                  <button type="button" onClick={() => updateEntry('completed', entryState.assistance_level)} className="rounded-md border border-amber-300/30 px-3 py-2 text-xs font-black text-amber-100 hover:bg-amber-500/10 focus:outline-none focus:ring-2 focus:ring-amber-200">Mark First Action</button>
+                  <button type="button" onClick={() => updateEntry('abstain', entryState.assistance_level)} className="rounded-md border border-slate-500 px-3 py-2 text-xs font-black text-slate-200 hover:bg-slate-700/40 focus:outline-none focus:ring-2 focus:ring-slate-300">Abstain</button>
+                </div>
+              </div>
+              <div className="mt-4 rounded-lg border border-amber-300/20 bg-slate-950/65 p-4">
+                <p className="text-xs font-black uppercase tracking-wide text-amber-300">Mission envelope export</p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  Paste this mission into Algorithm Builder before creating the artifact receipt. Builder validates the envelope, but AlgoQuest stays the mission authority.
+                </p>
+                <textarea
+                  aria-label="Mission envelope JSON export for Algorithm Builder"
+                  readOnly
+                  value={JSON.stringify(mageMissionEnvelope, null, 2)}
+                  className="mt-3 min-h-36 w-full rounded-md border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                />
+              </div>
+              <div className="mt-4 rounded-lg border border-blue-300/20 bg-slate-950/65 p-4">
+                <p className="text-xs font-black uppercase tracking-wide text-blue-300">Builder receipt import</p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  Local ports do not share browser storage. Until the WebAuth broker exists, paste a Builder receipt JSON here for explicit validation.
+                </p>
+                <textarea
+                  aria-label="Builder artifact receipt JSON import"
+                  value={receiptImport}
+                  onChange={(event) => setReceiptImport(event.target.value)}
+                  className="mt-3 min-h-24 w-full rounded-md border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  placeholder='{"schema":"securedme.education.algorithm-builder.algorithm-artifact-receipt.v1", ...}'
+                />
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <button type="button" onClick={importBuilderReceipt} className="rounded-md bg-blue-500 px-4 py-2 text-xs font-black text-white hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200">Validate Receipt</button>
+                  <span className="text-xs font-bold text-slate-300">{receiptImportStatus}</span>
+                </div>
+                {builderReceipt ? (
+                  <p className="mt-3 text-xs font-bold text-emerald-300">
+                    Active receipt: {builderReceipt.receipt_id} · {builderReceipt.artifact_digest.slice(0, 20)}...
+                  </p>
+                ) : null}
+              </div>
+              <div className="mt-4 rounded-lg border border-violet-300/20 bg-slate-950/65 p-4">
+                <p className="text-xs font-black uppercase tracking-wide text-violet-300">Colab notebook round trip</p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  Notebook: {mageColabNotebookManifest.notebook_id}. It exports a receipt only; AlgoQuest remains the mission authority.
+                </p>
+                <a
+                  href="/notebooks/mage-two-horizons-primary-5-6-fr-CA.ipynb"
+                  download
+                  className="mt-3 inline-flex rounded-md border border-violet-300/40 px-4 py-2 text-xs font-black text-violet-100 hover:bg-violet-500/10 focus:outline-none focus:ring-2 focus:ring-violet-200"
+                >
+                  Download Colab Notebook
+                </a>
+                <textarea
+                  aria-label="Colab round trip receipt JSON import"
+                  value={colabReceiptImport}
+                  onChange={(event) => setColabReceiptImport(event.target.value)}
+                  className="mt-3 min-h-24 w-full rounded-md border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-300"
+                  placeholder='{"schema":"securedme.education.algoquest.colab-round-trip-receipt.v1", ...}'
+                />
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <button type="button" onClick={importColabReceipt} className="rounded-md bg-violet-600 px-4 py-2 text-xs font-black text-white hover:bg-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200">Validate Colab Receipt</button>
+                  <span className="text-xs font-bold text-slate-300">{colabReceiptStatus}</span>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <div className="rounded-lg border border-cyan-300/20 bg-slate-950/65 p-4">
+                  <p className="text-xs font-black uppercase tracking-wide text-cyan-300">Adventure view</p>
+                  <h3 className="mt-2 text-xl font-black text-white">{currentPromptNode.title}</h3>
+                  <pre className="mt-3 overflow-x-auto rounded-md border border-slate-700 bg-black p-3 text-[11px] leading-5 text-cyan-100">
+                    {currentAsciiScene.art.join('\n')}
+                  </pre>
+                  <p className="mt-3 text-sm leading-6 text-slate-300">{currentPromptNode.prompt_text}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button type="button" onClick={advanceAdventure} className="rounded-md bg-cyan-500 px-4 py-2 text-xs font-black text-slate-950 hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-200">Next Prompt</button>
+                    <button type="button" onClick={replayAdventure} className="rounded-md border border-cyan-300/40 px-4 py-2 text-xs font-black text-cyan-100 hover:bg-cyan-500/10 focus:outline-none focus:ring-2 focus:ring-cyan-200">Replay</button>
+                    <button type="button" onClick={resetAdventure} className="rounded-md border border-slate-500 px-4 py-2 text-xs font-black text-slate-200 hover:bg-slate-700/40 focus:outline-none focus:ring-2 focus:ring-slate-300">Reset</button>
+                  </div>
+                  <p className="mt-3 text-xs font-bold text-slate-400">Replay: {replayStatus}</p>
+                </div>
+                <div className="rounded-lg border border-emerald-300/20 bg-slate-950/65 p-4">
+                  <p className="text-xs font-black uppercase tracking-wide text-emerald-300">Study and artifact view</p>
+                  <dl className="mt-3 grid gap-2 text-xs font-bold text-slate-300">
+                    <div className="flex justify-between gap-4 rounded-md border border-slate-700 p-2">
+                      <dt>Consumed prompts</dt>
+                      <dd>{adventureRuntime.quest_state.consumed_prompt_ids.length}</dd>
+                    </div>
+                    <div className="flex justify-between gap-4 rounded-md border border-slate-700 p-2">
+                      <dt>Story points</dt>
+                      <dd>{adventureRuntime.quest_state.story_points}</dd>
+                    </div>
+                    <div className="flex justify-between gap-4 rounded-md border border-slate-700 p-2">
+                      <dt>LearningEvidence tokens</dt>
+                      <dd>{adventureRuntime.learning_evidence.knowledge_token_ids.length}</dd>
+                    </div>
+                    <div className="rounded-md border border-slate-700 p-2">
+                      <dt>Linear ASCII equivalent</dt>
+                      <dd className="mt-1 font-normal leading-5 text-slate-400">{currentAsciiScene.linear_equivalent}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+              <div className="mt-4 rounded-lg border border-amber-300/20 bg-slate-950/65 p-4">
+                <p className="text-xs font-black uppercase tracking-wide text-amber-300">Privacy & Permissions Ledger</p>
+                <div className="mt-3 grid gap-3 text-xs font-bold text-slate-300 sm:grid-cols-3">
+                  <div className="rounded-md border border-slate-700 p-3">
+                    <p className="text-white">Student private</p>
+                    <p className="mt-1">raw answers: {String(demoStudentProjection.contains_raw_answer)}</p>
+                    <p>identity: {String(demoStudentProjection.contains_identity)}</p>
+                  </div>
+                  <div className="rounded-md border border-slate-700 p-3">
+                    <p className="text-white">Teacher assigned</p>
+                    <p className="mt-1">status: {demoTeacherProjection.visible_status}</p>
+                    <p>raw answers: {String(demoTeacherProjection.contains_raw_answer)}</p>
+                  </div>
+                  <div className="rounded-md border border-slate-700 p-3">
+                    <p className="text-white">Organization</p>
+                    <p className="mt-1">status: {demoOrganizationAggregate.status}</p>
+                    <p>k: {demoOrganizationAggregate.k_threshold}</p>
+                  </div>
+                </div>
+                <div className="mt-3 rounded-md border border-slate-700 p-3 text-xs font-bold text-slate-300">
+                  <p className="text-white">Hierarchy guard</p>
+                  <p className="mt-1">organization admin to teacher private activity: {demoHierarchyAccess.status}</p>
+                  <p>reason: {demoHierarchyAccess.reason}</p>
+                  <p>local receipts: {privacyReceiptCount}</p>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button type="button" onClick={generateTokenRevocation} className="rounded-md border border-amber-300/40 px-3 py-2 text-xs font-black text-amber-100 hover:bg-amber-500/10 focus:outline-none focus:ring-2 focus:ring-amber-200">Revoke Data Access (Issue Receipt)</button>
+                  <button type="button" onClick={generateDeletionReceipt} className="rounded-md border border-rose-300/40 px-3 py-2 text-xs font-black text-rose-100 hover:bg-rose-500/10 focus:outline-none focus:ring-2 focus:ring-rose-200">Request Data Deletion (Issue Receipt)</button>
+                  <button type="button" onClick={clearPrivacyReceipts} className="rounded-md border border-slate-500 px-3 py-2 text-xs font-black text-slate-200 hover:bg-slate-700/40 focus:outline-none focus:ring-2 focus:ring-slate-300">Clear Local Privacy Vault</button>
+                </div>
+                <textarea
+                  aria-label="Privacy & Permissions JSON output"
+                  readOnly
+                  value={privacyReceipt}
+                  className="mt-3 min-h-28 w-full rounded-md border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                />
+              </div>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                {[
+                  [String(HERO_BOOK_PROOF.audienceCount), 'audiences'],
+                  [String(HERO_BOOK_PROOF.firstManifest.prompt_nodes.length), 'first prompts'],
+                  [HERO_BOOK_PROOF.tenebrisDefault, 'Tenebris'],
+                ].map(([value, label]) => (
+                  <div key={label} className="rounded-md border border-emerald-300/20 bg-slate-950/60 p-4">
+                    <p className="text-2xl font-black text-emerald-300">{value}</p>
+                    <p className="mt-1 text-xs font-bold uppercase tracking-wide text-slate-400">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {heroWorldRegistry.map((world) => (
+                <article key={world.hero_book_id} className="rounded-lg border border-slate-700 bg-[#080d1f] p-4">
+                  <h3 className="text-lg font-black text-white">{world.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{world.canonical_learning_purpose}</p>
                 </article>
               ))}
             </div>

@@ -1,0 +1,128 @@
+{
+  "schema": "securedme.education.algoquest.hero-books-145-action-state.v1",
+  "updated_at": "2026-08-03T18:35:00.0000000Z",
+  "status": "pre-alpha-in-progress",
+  "scope": {
+    "allowed_repositories": [
+      "algoquest-ams-discovry-labs-module-",
+      "algorithm-builder-app"
+    ],
+    "forbidden_repositories": [
+      "securedme-scholarium",
+      "V.O.T-Guardian",
+      "other SecuredMe Education tools"
+    ]
+  },
+  "evidence": {
+    "environment": {
+      "algoquest_reference_commit": "09383fd7444f8c31172c2cb41ac1d24152457ff1",
+      "algorithm_builder_reference_commit": "d02d8f7f4811d1dc1a02847a073ef2f4ac0e0e48",
+      "root_env": "exists_redacted_277_variable_names_detected",
+      "root_venv_python": "Python 3.10.11",
+      "node": "v24.18.1",
+      "npm": "11.16.0",
+      "py_3_13": "Python 3.13.7",
+      "playwright_dependency": "@playwright/test 1.62.1 installed"
+    },
+    "algoquest": {
+      "hero_books_contract_test": "passed",
+      "entry_and_adventure_local_resume_contract": "passed",
+      "local_multi_tab_version_conflict_contract": "passed",
+      "privacy_revocation_deletion_hierarchy_contract": "passed",
+      "privacy_receipt_local_persistence": "passed",
+      "privacy_receipt_ui_workflow": "passed",
+      "hero_books_accessibility_static_gate": "passed",
+      "hero_books_chromium_desktop_tablet_mobile_browser_gate": "passed",
+      "hero_books_aria_snapshot_reduced_motion_gate": "passed",
+      "hero_books_chromebook_class_simulated_performance_gate": "passed",
+      "builder_webauth_broker_closed_contract": "passed",
+      "npm_test": "passed",
+      "vite_build": "passed",
+      "typescript": "passed",
+      "mkdocs_strict": "passed",
+      "dev_server": "passed_after_polling_watch_fix",
+      "local_app_url": "http://127.0.0.1:5173 returned 200",
+      "local_notebook_url": "http://127.0.0.1:5173/notebooks/mage-two-horizons-primary-5-6-fr-CA.ipynb returned 200",
+      "pre_alpha_gate": "passed",
+      "simulated_runs": "1_25_100_passed",
+      "secret_scan_files": 20,
+      "latest_gate_digest": "sha256:de9850b1e9d0e5f02c1c7fb6363e86385c0f6f9aea4932182bd2258aae7d2bef"
+    },
+    "algorithm_builder": {
+      "smoke_test": "passed",
+      "webpack_build": "passed",
+      "mission_envelope_import_contract": "passed",
+      "health_endpoint": "http://127.0.0.1:3000/health returned healthy"
+    }
+  },
+  "implemented_action_ranges": [
+    {
+      "range": "1-14",
+      "status": "partial",
+      "note": "Reference commands, commit hashes, redacted env audit, venv audit, runtime versions, boundaries, ADRs and traceability exist; final closure evidence remains incomplete."
+    },
+    {
+      "range": "29-42",
+      "status": "partial",
+      "note": "Core QuestState, LearningEvidence, digests, milestones and tests exist; DeclaredPreference and full badge/token/unlock admission policy remain incomplete."
+    },
+    {
+      "range": "43-56",
+      "status": "partial",
+      "note": "Six audiences and six worlds exist; provenance review and certified localization remain incomplete."
+    },
+    {
+      "range": "57-70",
+      "status": "partial",
+      "note": "Narrative envelope boundaries, deterministic fallback and a closed Builder WebAuth broker contract exist; live provider and live cross-tool broker remain incomplete."
+    },
+    {
+      "range": "71-85",
+      "status": "partial",
+      "note": "Builder manifest, MissionEnvelope import validation, artifact receipt, deterministic die, character sheet and copyable JSON receipt exist; most planned capabilities are cataloged but not implemented."
+    },
+    {
+      "range": "86-100",
+      "status": "partial",
+      "note": "First Mage prompt bank, assignment, one-use consumption, local version conflict guard and 100 replay test exist; full 40-prompt adaptation remains incomplete."
+    },
+    {
+      "range": "101-115",
+      "status": "partial",
+      "note": "Colab notebook manifest, versioned ipynb, public download, round-trip receipt validation, ASCII bounded rendering, explicit import UI, AdventureRuntime, local resume contract, minimal Adventure view, Study/artifact view, deterministic replay, static accessibility gate, Chromium desktop/tablet/mobile browser gate, ARIA snapshot, reduced-motion and Chromebook-class simulated performance proof exist; polished workflow remains incomplete."
+    },
+    {
+      "range": "116-130",
+      "status": "partial",
+      "note": "Tenebris disabled observation, student private projection, assigned teacher summary, organization aggregate k>=10, consented expiring KnowledgeToken transfer, revocation, deletion receipt, hierarchy access decision contracts, local bounded receipt persistence, safe filtering, purge and UI workflow exist; school alignment review remains incomplete."
+    },
+    {
+      "range": "139-143",
+      "status": "partial",
+      "note": "Contract-level 1/25/100 AdventureRun simulations, dependency-failure simulations, static accessibility gate, Chromium desktop/tablet/mobile browser gate, ARIA snapshot, reduced-motion proof, Chromebook-class simulated performance proof, forbidden marker scan across docs/notebooks/dist, and operational-vs-blocked pre-alpha gate report exist; live broker and Colab evidence remain incomplete."
+    }
+  ],
+  "invariants": {
+    "qbit_authority": "none",
+    "colab_authority": "none",
+    "builder_authority": "artifact_receipts_only",
+    "tenebris_default": "disabled",
+    "real_users": "forbidden_in_this_proof",
+    "raw_secret_stored": false
+  },
+  "alpha_ready": false,
+  "alpha_blockers": [
+    "live Builder-WebAuth broker absent",
+    "live Colab file/API round-trip absent",
+    "no real user, teacher, school or minor approval"
+  ],
+  "next_required_work": [
+    "Use docs/hero-books-145-action-audit.md as the current human-readable action ledger.",
+    "Polish EntryMissionManifest UI around the tested local resume contract.",
+    "Turn the minimal adventure/study views into a complete guided workflow.",
+    "Add live Colab execution or file/API round-trip import.",
+    "Polish privacy workflow language and add browser accessibility proof.",
+    "Design or implement live Builder-WebAuth broker proof.",
+    "Produce final 145-action audit before any alpha claim."
+  ]
+}

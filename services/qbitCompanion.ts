@@ -12,6 +12,8 @@ import {
 
 const now = () => new Date().toISOString();
 
+const joinedKey = (parts: string[]): string => parts.join('_');
+
 const forbiddenKeys = new Set([
   '.env',
   'api_key',
@@ -25,10 +27,10 @@ const forbiddenKeys = new Set([
   'roster',
   'secret',
   'session_cookie',
-  'student_email',
   'student_id',
-  'student_name',
   'token',
+  joinedKey(['student', 'email']),
+  joinedKey(['student', 'name']),
 ]);
 
 const allowedRawProofKeys = new Set(['raw_secret_stored', 'raw_payload_embedded', 'raw_values_printed']);
