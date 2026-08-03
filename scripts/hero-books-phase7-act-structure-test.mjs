@@ -19,10 +19,11 @@ for (const [actId, count] of Object.entries(actCounts)) {
 }
 
 // All five acts must be present
-for (let i = 1; i <= 5; i++) {
+const expectedActs = ['act-1', 'act-2', 'act-3', 'act-4', 'act-5'];
+for (const act of expectedActs) {
   assert.ok(
-    actCounts[\`act-\${i}\`] >= 1,
-    \`act-\${i} must have at least one prompt\`
+    actCounts[act] >= 1,
+    act + ' must have at least one prompt'
   );
 }
 
