@@ -1767,3 +1767,420 @@ export function clearLocalPrivacyReceipts({ requested_by = 'learner', cleared_at
     };
   }
 }
+
+
+// --- RONIN DES SIX PROVINCES ---
+export const roninSixProvincesSecondaryFr = {
+  schema: 'securedme.education.algoquest.hero-book-manifest.v1',
+  hero_book_id: 'ronin-six-provinces',
+  adaptation_id: 'ronin-six-provinces.secondary-3-5.fr-CA.1',
+  title: 'Le Ronin des Six Provinces',
+  locale: 'fr-CA',
+  audience_id: 'secondary-3-5',
+  version: '1.0.0',
+  prompt_bank_size: 5,
+  max_prompt_slots: 5,
+  acts: [
+    { act_id: 'act-1', title: 'Le carrefour', required_node_types: ['StoryAnchorNode'] }
+  ],
+  fiction_boundary: {
+    historical_claims: [],
+    scientific_claims: [{ claim_id: 'graph-theory', statement: 'Graphs model choices.', certainty: 'introductory', source_refs: [] }],
+    forbidden_claims: []
+  },
+  prompt_nodes: [
+    {
+      prompt_id: 'ronin-p01-crossroads', act_id: 'act-1', node_type: 'StoryAnchorNode',
+      title: 'Le carrefour', prompt_text: 'Observe les routes et evalue leurs couts.',
+      prerequisites: [], mandatory: true, capability_refs: ['builder:text-fallback'], evidence_kind: 'observation'
+    },
+    {
+      prompt_id: 'ronin-p02-cost', act_id: 'act-1', node_type: 'ChallengeNode',
+      title: 'Calcul du cout', prompt_text: 'Modelise le cout du chemin gauche vs droite.',
+      prerequisites: ['ronin-p01-crossroads'], mandatory: true, capability_refs: ['builder:text-fallback'], evidence_kind: 'algorithm-artifact'
+    },
+    {
+      prompt_id: 'ronin-p03-repair', act_id: 'act-1', node_type: 'ChallengeNode',
+      title: 'Reparer le pont', prompt_text: 'Corrige la condition de traverser le pont.',
+      prerequisites: ['ronin-p02-cost'], mandatory: true, capability_refs: ['builder:text-fallback'], evidence_kind: 'debugging'
+    },
+    {
+      prompt_id: 'ronin-p04-token', act_id: 'act-1', node_type: 'MilestoneNode',
+      title: 'Le Sceau du Ronin', prompt_text: 'Reclame le jeton de strategie.',
+      prerequisites: ['ronin-p03-repair'], mandatory: true, capability_refs: ['algoquest:knowledge-token'], evidence_kind: 'first-proof'
+    },
+    {
+      prompt_id: 'ronin-p05-finale', act_id: 'act-1', node_type: 'FinaleNode',
+      title: 'La decision', prompt_text: 'Ecris trois phrases sur le chemin choisi.',
+      prerequisites: ['ronin-p04-token'], mandatory: true, capability_refs: ['algoquest:mission-completion-receipt'], evidence_kind: 'reflection'
+    }
+  ]
+};
+
+export const roninEntryMissionManifest = {
+  schema: 'securedme.education.algoquest.entry-mission-manifest.v1',
+  mission_id: 'entry.ronin-six-provinces.secondary.fr-CA.1',
+  adaptation_id: roninSixProvincesSecondaryFr.adaptation_id,
+  hero_book_id: roninSixProvincesSecondaryFr.hero_book_id,
+  locale: roninSixProvincesSecondaryFr.locale,
+  audience_id: roninSixProvincesSecondaryFr.audience_id,
+  entry_modes: ['textual', 'guided_notebook'],
+  allowed_states: ['ready', 'guided', 'completed'],
+  first_objective: 'Modeliser un cout de graphe.',
+  success_is_time_based: false,
+  fifteen_minutes_is: 'ergonomic-target-not-pass-fail-threshold',
+  raw_secret_stored: false,
+  contract_version: 'v1.0.0',
+};
+
+export const roninMissionEnvelope = {
+  schema: 'securedme.education.algoquest.mission-envelope.v1',
+  mission_id: roninEntryMissionManifest.mission_id,
+  adaptation_id: roninSixProvincesSecondaryFr.adaptation_id,
+  hero_book_id: roninSixProvincesSecondaryFr.hero_book_id,
+  locale: roninSixProvincesSecondaryFr.locale,
+  audience_id: roninSixProvincesSecondaryFr.audience_id,
+  mission_title: 'Premier chemin du Ronin',
+  objective: roninEntryMissionManifest.first_objective,
+  required_prompt_ids: ['ronin-p01-crossroads', 'ronin-p02-cost', 'ronin-p03-repair', 'ronin-p04-token', 'ronin-p05-finale'],
+  optional_prompt_ids: [],
+  builder_capability_refs: ['text-fallback'],
+  colab_notebook_ref: 'notebooks/ronin-six-provinces-fr-CA.ipynb',
+  canonical_state_owner: 'algoquest',
+  artifact_owner: 'algorithm-builder-or-colab',
+  raw_secret_stored: false,
+  contract_version: 'v1.0.0',
+};
+
+// --- LA COURONNE DES MAREES ---
+export const crownOfTidesCollegeFr = {
+  schema: 'securedme.education.algoquest.hero-book-manifest.v1',
+  hero_book_id: 'crown-of-tides',
+  adaptation_id: 'crown-of-tides.college.fr-CA.1',
+  title: 'La Couronne des Marees',
+  locale: 'fr-CA',
+  audience_id: 'college',
+  version: '1.0.0',
+  prompt_bank_size: 5,
+  max_prompt_slots: 5,
+  acts: [
+    { act_id: 'act-1', title: 'Le port', required_node_types: ['StoryAnchorNode'] }
+  ],
+  fiction_boundary: {
+    historical_claims: [],
+    scientific_claims: [{ claim_id: 'prob-risk', statement: 'Risk is modeled.', certainty: 'introductory', source_refs: [] }],
+    forbidden_claims: []
+  },
+  prompt_nodes: [
+    {
+      prompt_id: 'crown-p01-port', act_id: 'act-1', node_type: 'StoryAnchorNode',
+      title: 'Le port', prompt_text: 'Observe les ressources au port.',
+      prerequisites: [], mandatory: true, capability_refs: ['builder:text-fallback'], evidence_kind: 'observation'
+    },
+    {
+      prompt_id: 'crown-p02-cipher', act_id: 'act-1', node_type: 'ChallengeNode',
+      title: 'Déchiffrer la carte', prompt_text: 'Utilise un algorithme simple pour déchiffrer la carte.',
+      prerequisites: ['crown-p01-port'], mandatory: true, capability_refs: ['builder:text-fallback'], evidence_kind: 'algorithm-artifact'
+    },
+    {
+      prompt_id: 'crown-p03-risk', act_id: 'act-1', node_type: 'ChallengeNode',
+      title: 'Évaluer le risque', prompt_text: 'Calcule la probabilité de tempête.',
+      prerequisites: ['crown-p02-cipher'], mandatory: true, capability_refs: ['builder:text-fallback'], evidence_kind: 'transfer'
+    },
+    {
+      prompt_id: 'crown-p04-token', act_id: 'act-1', node_type: 'MilestoneNode',
+      title: 'Le Jeton des Marees', prompt_text: 'Reclame le jeton de risque.',
+      prerequisites: ['crown-p03-risk'], mandatory: true, capability_refs: ['algoquest:knowledge-token'], evidence_kind: 'first-proof'
+    },
+    {
+      prompt_id: 'crown-p05-finale', act_id: 'act-1', node_type: 'FinaleNode',
+      title: 'Levée de l ancre', prompt_text: 'Ecris sur le risque pris.',
+      prerequisites: ['crown-p04-token'], mandatory: true, capability_refs: ['algoquest:mission-completion-receipt'], evidence_kind: 'reflection'
+    }
+  ]
+};
+
+export const crownEntryMissionManifest = {
+  schema: 'securedme.education.algoquest.entry-mission-manifest.v1',
+  mission_id: 'entry.crown-of-tides.college.fr-CA.1',
+  adaptation_id: crownOfTidesCollegeFr.adaptation_id,
+  hero_book_id: crownOfTidesCollegeFr.hero_book_id,
+  locale: crownOfTidesCollegeFr.locale,
+  audience_id: crownOfTidesCollegeFr.audience_id,
+  entry_modes: ['textual', 'guided_notebook'],
+  allowed_states: ['ready', 'guided', 'completed'],
+  first_objective: 'Modeliser un risque de probabilite.',
+  success_is_time_based: false,
+  fifteen_minutes_is: 'ergonomic-target-not-pass-fail-threshold',
+  raw_secret_stored: false,
+  contract_version: 'v1.0.0',
+};
+
+export const crownMissionEnvelope = {
+  schema: 'securedme.education.algoquest.mission-envelope.v1',
+  mission_id: crownEntryMissionManifest.mission_id,
+  adaptation_id: crownOfTidesCollegeFr.adaptation_id,
+  hero_book_id: crownOfTidesCollegeFr.hero_book_id,
+  locale: crownOfTidesCollegeFr.locale,
+  audience_id: crownOfTidesCollegeFr.audience_id,
+  mission_title: 'Premier voile de la Couronne',
+  objective: crownEntryMissionManifest.first_objective,
+  required_prompt_ids: ['crown-p01-port', 'crown-p02-cipher', 'crown-p03-risk', 'crown-p04-token', 'crown-p05-finale'],
+  optional_prompt_ids: [],
+  builder_capability_refs: ['text-fallback'],
+  colab_notebook_ref: 'notebooks/crown-of-tides-fr-CA.ipynb',
+  canonical_state_owner: 'algoquest',
+  artifact_owner: 'algorithm-builder-or-colab',
+  raw_secret_stored: false,
+  contract_version: 'v1.0.0',
+};
+
+// --- ALCHIMISTE ET LA PORTE DU CHÊNE ---
+export const alchemistOakGateSecondaryFr = {
+  schema: 'securedme.education.algoquest.hero-book-manifest.v1',
+  hero_book_id: 'alchemist-oak-gate',
+  adaptation_id: 'alchemist-oak-gate.secondary-1-2.fr-CA.1',
+  title: 'L Alchimiste et la Porte du Chene',
+  locale: 'fr-CA',
+  audience_id: 'secondary-1-2',
+  version: '1.0.0',
+  prompt_bank_size: 5,
+  max_prompt_slots: 5,
+  acts: [
+    { act_id: 'act-1', title: 'Le creuset', required_node_types: ['StoryAnchorNode'] }
+  ],
+  fiction_boundary: {
+    historical_claims: [],
+    scientific_claims: [{ claim_id: 'state-transitions', statement: 'Pipelines transition states.', certainty: 'introductory', source_refs: [] }],
+    forbidden_claims: []
+  },
+  prompt_nodes: [
+    {
+      prompt_id: 'alchemist-p01-crucible', act_id: 'act-1', node_type: 'StoryAnchorNode',
+      title: 'Le creuset', prompt_text: 'Observe les elements au depart.',
+      prerequisites: [], mandatory: true, capability_refs: ['builder:text-fallback'], evidence_kind: 'observation'
+    },
+    {
+      prompt_id: 'alchemist-p02-pipeline', act_id: 'act-1', node_type: 'ChallengeNode',
+      title: 'Le pipeline de nigredo', prompt_text: 'Construis une transition d etat.',
+      prerequisites: ['alchemist-p01-crucible'], mandatory: true, capability_refs: ['builder:text-fallback'], evidence_kind: 'algorithm-artifact'
+    },
+    {
+      prompt_id: 'alchemist-p03-verify', act_id: 'act-1', node_type: 'ChallengeNode',
+      title: 'Verifier le symbole', prompt_text: 'Separe le symbole de la transformation physique.',
+      prerequisites: ['alchemist-p02-pipeline'], mandatory: true, capability_refs: ['builder:text-fallback'], evidence_kind: 'transfer'
+    },
+    {
+      prompt_id: 'alchemist-p04-token', act_id: 'act-1', node_type: 'MilestoneNode',
+      title: 'Le Jeton de l Alchimiste', prompt_text: 'Reclame le jeton des etats.',
+      prerequisites: ['alchemist-p03-verify'], mandatory: true, capability_refs: ['algoquest:knowledge-token'], evidence_kind: 'first-proof'
+    },
+    {
+      prompt_id: 'alchemist-p05-finale', act_id: 'act-1', node_type: 'FinaleNode',
+      title: 'Ouverture de la porte', prompt_text: 'Ecris ce que tu as appris.',
+      prerequisites: ['alchemist-p04-token'], mandatory: true, capability_refs: ['algoquest:mission-completion-receipt'], evidence_kind: 'reflection'
+    }
+  ]
+};
+
+export const alchemistEntryMissionManifest = {
+  schema: 'securedme.education.algoquest.entry-mission-manifest.v1',
+  mission_id: 'entry.alchemist-oak-gate.secondary.fr-CA.1',
+  adaptation_id: alchemistOakGateSecondaryFr.adaptation_id,
+  hero_book_id: alchemistOakGateSecondaryFr.hero_book_id,
+  locale: alchemistOakGateSecondaryFr.locale,
+  audience_id: alchemistOakGateSecondaryFr.audience_id,
+  entry_modes: ['textual', 'guided_notebook'],
+  allowed_states: ['ready', 'guided', 'completed'],
+  first_objective: 'Modeliser un pipeline de transition.',
+  success_is_time_based: false,
+  fifteen_minutes_is: 'ergonomic-target-not-pass-fail-threshold',
+  raw_secret_stored: false,
+  contract_version: 'v1.0.0',
+};
+
+export const alchemistMissionEnvelope = {
+  schema: 'securedme.education.algoquest.mission-envelope.v1',
+  mission_id: alchemistEntryMissionManifest.mission_id,
+  adaptation_id: alchemistOakGateSecondaryFr.adaptation_id,
+  hero_book_id: alchemistOakGateSecondaryFr.hero_book_id,
+  locale: alchemistOakGateSecondaryFr.locale,
+  audience_id: alchemistOakGateSecondaryFr.audience_id,
+  mission_title: 'Premier creuset de l Alchimiste',
+  objective: alchemistEntryMissionManifest.first_objective,
+  required_prompt_ids: ['alchemist-p01-crucible', 'alchemist-p02-pipeline', 'alchemist-p03-verify', 'alchemist-p04-token', 'alchemist-p05-finale'],
+  optional_prompt_ids: [],
+  builder_capability_refs: ['text-fallback'],
+  colab_notebook_ref: 'notebooks/alchemist-oak-gate-fr-CA.ipynb',
+  canonical_state_owner: 'algoquest',
+  artifact_owner: 'algorithm-builder-or-colab',
+  raw_secret_stored: false,
+  contract_version: 'v1.0.0',
+};
+
+// --- NEURONE SANS CERVEAU ---
+export const neuronWithoutBrainUniversityFr = {
+  schema: 'securedme.education.algoquest.hero-book-manifest.v1',
+  hero_book_id: 'neuron-without-brain',
+  adaptation_id: 'neuron-without-brain.university.fr-CA.1',
+  title: 'Le Neurone Sans Cerveau',
+  locale: 'fr-CA',
+  audience_id: 'university',
+  version: '1.0.0',
+  prompt_bank_size: 5,
+  max_prompt_slots: 5,
+  acts: [
+    { act_id: 'act-1', title: 'La synapse', required_node_types: ['StoryAnchorNode'] }
+  ],
+  fiction_boundary: {
+    historical_claims: [],
+    scientific_claims: [{ claim_id: 'brownian', statement: 'Brownian motion is stochastic.', certainty: 'introductory', source_refs: [] }],
+    forbidden_claims: []
+  },
+  prompt_nodes: [
+    {
+      prompt_id: 'neuron-p01-synapse', act_id: 'act-1', node_type: 'StoryAnchorNode',
+      title: 'La synapse', prompt_text: 'Observe le mouvement brownien.',
+      prerequisites: [], mandatory: true, capability_refs: ['builder:text-fallback'], evidence_kind: 'observation'
+    },
+    {
+      prompt_id: 'neuron-p02-model', act_id: 'act-1', node_type: 'ChallengeNode',
+      title: 'Modéliser l effet', prompt_text: 'Code l effet photoélectrique simplifie.',
+      prerequisites: ['neuron-p01-synapse'], mandatory: true, capability_refs: ['builder:text-fallback'], evidence_kind: 'algorithm-artifact'
+    },
+    {
+      prompt_id: 'neuron-p03-limits', act_id: 'act-1', node_type: 'ChallengeNode',
+      title: 'Limites du modele', prompt_text: 'Explique ou ce modele echoue par rapport a la relativite.',
+      prerequisites: ['neuron-p02-model'], mandatory: true, capability_refs: ['builder:text-fallback'], evidence_kind: 'model-limit'
+    },
+    {
+      prompt_id: 'neuron-p04-token', act_id: 'act-1', node_type: 'MilestoneNode',
+      title: 'Le Jeton du Neurone', prompt_text: 'Reclame le jeton de limite.',
+      prerequisites: ['neuron-p03-limits'], mandatory: true, capability_refs: ['algoquest:knowledge-token'], evidence_kind: 'first-proof'
+    },
+    {
+      prompt_id: 'neuron-p05-finale', act_id: 'act-1', node_type: 'FinaleNode',
+      title: 'Le potentiel d action', prompt_text: 'Ecris ta conclusion.',
+      prerequisites: ['neuron-p04-token'], mandatory: true, capability_refs: ['algoquest:mission-completion-receipt'], evidence_kind: 'reflection'
+    }
+  ]
+};
+
+export const neuronEntryMissionManifest = {
+  schema: 'securedme.education.algoquest.entry-mission-manifest.v1',
+  mission_id: 'entry.neuron-without-brain.university.fr-CA.1',
+  adaptation_id: neuronWithoutBrainUniversityFr.adaptation_id,
+  hero_book_id: neuronWithoutBrainUniversityFr.hero_book_id,
+  locale: neuronWithoutBrainUniversityFr.locale,
+  audience_id: neuronWithoutBrainUniversityFr.audience_id,
+  entry_modes: ['textual', 'guided_notebook'],
+  allowed_states: ['ready', 'guided', 'completed'],
+  first_objective: 'Modeliser le mouvement brownien.',
+  success_is_time_based: false,
+  fifteen_minutes_is: 'ergonomic-target-not-pass-fail-threshold',
+  raw_secret_stored: false,
+  contract_version: 'v1.0.0',
+};
+
+export const neuronMissionEnvelope = {
+  schema: 'securedme.education.algoquest.mission-envelope.v1',
+  mission_id: neuronEntryMissionManifest.mission_id,
+  adaptation_id: neuronWithoutBrainUniversityFr.adaptation_id,
+  hero_book_id: neuronWithoutBrainUniversityFr.hero_book_id,
+  locale: neuronWithoutBrainUniversityFr.locale,
+  audience_id: neuronWithoutBrainUniversityFr.audience_id,
+  mission_title: 'Premier potentiel du Neurone',
+  objective: neuronEntryMissionManifest.first_objective,
+  required_prompt_ids: ['neuron-p01-synapse', 'neuron-p02-model', 'neuron-p03-limits', 'neuron-p04-token', 'neuron-p05-finale'],
+  optional_prompt_ids: [],
+  builder_capability_refs: ['text-fallback'],
+  colab_notebook_ref: 'notebooks/neuron-without-brain-fr-CA.ipynb',
+  canonical_state_owner: 'algoquest',
+  artifact_owner: 'algorithm-builder-or-colab',
+  raw_secret_stored: false,
+  contract_version: 'v1.0.0',
+};
+
+// --- CITADELLE DES ALGORITHMES ---
+export const algorithmCitadelProfessorFr = {
+  schema: 'securedme.education.algoquest.hero-book-manifest.v1',
+  hero_book_id: 'algorithm-citadel',
+  adaptation_id: 'algorithm-citadel.professor-player.fr-CA.1',
+  title: 'La Citadelle des Algorithmes',
+  locale: 'fr-CA',
+  audience_id: 'professor-player',
+  version: '1.0.0',
+  prompt_bank_size: 5,
+  max_prompt_slots: 5,
+  acts: [
+    { act_id: 'act-1', title: 'La porte', required_node_types: ['StoryAnchorNode'] }
+  ],
+  fiction_boundary: {
+    historical_claims: [],
+    scientific_claims: [{ claim_id: 'structures', statement: 'Data structures organize knowledge.', certainty: 'introductory', source_refs: [] }],
+    forbidden_claims: []
+  },
+  prompt_nodes: [
+    {
+      prompt_id: 'citadel-p01-gate', act_id: 'act-1', node_type: 'StoryAnchorNode',
+      title: 'La porte', prompt_text: 'Observe la boucle d entree.',
+      prerequisites: [], mandatory: true, capability_refs: ['builder:text-fallback'], evidence_kind: 'observation'
+    },
+    {
+      prompt_id: 'citadel-p02-loop', act_id: 'act-1', node_type: 'ChallengeNode',
+      title: 'Casser la boucle', prompt_text: 'Identifie la condition de fin manquante.',
+      prerequisites: ['citadel-p01-gate'], mandatory: true, capability_refs: ['builder:text-fallback'], evidence_kind: 'debugging'
+    },
+    {
+      prompt_id: 'citadel-p03-refactor', act_id: 'act-1', node_type: 'ChallengeNode',
+      title: 'Refactoriser la regle', prompt_text: 'Cree une fonction pure.',
+      prerequisites: ['citadel-p02-loop'], mandatory: true, capability_refs: ['builder:text-fallback'], evidence_kind: 'algorithm-artifact'
+    },
+    {
+      prompt_id: 'citadel-p04-token', act_id: 'act-1', node_type: 'MilestoneNode',
+      title: 'Le Jeton de la Citadelle', prompt_text: 'Reclame le jeton de fonction.',
+      prerequisites: ['citadel-p03-refactor'], mandatory: true, capability_refs: ['algoquest:knowledge-token'], evidence_kind: 'first-proof'
+    },
+    {
+      prompt_id: 'citadel-p05-finale', act_id: 'act-1', node_type: 'FinaleNode',
+      title: 'Entree accordee', prompt_text: 'Ecris l importance du debogage.',
+      prerequisites: ['citadel-p04-token'], mandatory: true, capability_refs: ['algoquest:mission-completion-receipt'], evidence_kind: 'reflection'
+    }
+  ]
+};
+
+export const citadelEntryMissionManifest = {
+  schema: 'securedme.education.algoquest.entry-mission-manifest.v1',
+  mission_id: 'entry.algorithm-citadel.professor.fr-CA.1',
+  adaptation_id: algorithmCitadelProfessorFr.adaptation_id,
+  hero_book_id: algorithmCitadelProfessorFr.hero_book_id,
+  locale: algorithmCitadelProfessorFr.locale,
+  audience_id: algorithmCitadelProfessorFr.audience_id,
+  entry_modes: ['textual', 'guided_notebook'],
+  allowed_states: ['ready', 'guided', 'completed'],
+  first_objective: 'Reparer une boucle.',
+  success_is_time_based: false,
+  fifteen_minutes_is: 'ergonomic-target-not-pass-fail-threshold',
+  raw_secret_stored: false,
+  contract_version: 'v1.0.0',
+};
+
+export const citadelMissionEnvelope = {
+  schema: 'securedme.education.algoquest.mission-envelope.v1',
+  mission_id: citadelEntryMissionManifest.mission_id,
+  adaptation_id: algorithmCitadelProfessorFr.adaptation_id,
+  hero_book_id: algorithmCitadelProfessorFr.hero_book_id,
+  locale: algorithmCitadelProfessorFr.locale,
+  audience_id: algorithmCitadelProfessorFr.audience_id,
+  mission_title: 'Premiere cle de la Citadelle',
+  objective: citadelEntryMissionManifest.first_objective,
+  required_prompt_ids: ['citadel-p01-gate', 'citadel-p02-loop', 'citadel-p03-refactor', 'citadel-p04-token', 'citadel-p05-finale'],
+  optional_prompt_ids: [],
+  builder_capability_refs: ['text-fallback'],
+  colab_notebook_ref: 'notebooks/algorithm-citadel-fr-CA.ipynb',
+  canonical_state_owner: 'algoquest',
+  artifact_owner: 'algorithm-builder-or-colab',
+  raw_secret_stored: false,
+  contract_version: 'v1.0.0',
+};
+
