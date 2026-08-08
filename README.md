@@ -9,7 +9,7 @@
 
 [Embedded CodeProject.AI node operations](infra/codeproject-ai/README.md)
 
-[![SecuredMe Education Suite public calendar](https://img.shields.io/badge/SecuredMe%20Education%20Suite-public%20calendar%20%7C%20pre--alpha%20through%20Aug%208%202026-5484ED?style=for-the-badge&logo=googlecalendar&logoColor=white)](https://calendrier.securedme.ca)
+[![SecuredMe Education Suite public calendar](https://img.shields.io/badge/SecuredMe%20Education%20Suite-public%20calendar%20%7C%20pre--alpha%20%7C%20active%20public%20development-5484ED?style=for-the-badge&logo=googlecalendar&logoColor=white)](https://calendrier.securedme.ca)
 
 **Attribution:** Jean-Sebastien Beaulieu · [ORCID 0009-0007-2904-0443](https://orcid.org/0009-0007-2904-0443) · [SecuredMe](https://securedme.ca) · [AlgoQuest](https://algoquest.securedme.ca)
 
@@ -39,7 +39,7 @@
 
 **AlgoQuest Qbit Education** is the education runtime for the SecuredMe suite.
 
-- Status: **pre-alpha / in development**
+- Status: **pre-alpha — active public development**
 - License: **Secured Educational License 2.0** (`LicenseRef-SEL-2.0`)
 - AI route governance: official classroom workflows are constrained to **Codex/OpenAI** and **Antigravity/Gemini**.
 
