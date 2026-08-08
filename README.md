@@ -42,6 +42,7 @@
 - Status: **pre-alpha — active public development**
 - License: **Secured Educational License 2.0** (`LicenseRef-SEL-2.0`)
 - AI route governance: official classroom workflows are constrained to **Codex/OpenAI** and **Antigravity/Gemini**.
+- Hero Books status: **pre-alpha proof line, not alpha-ready**. The deterministic core, Phase 7 prompt quality gates, Browser gate, Builder adapter contracts, Colab notebook contract, and privacy boundaries are tested; live Builder WebAuth and live Colab round trip remain blockers.
 
 ---
 
@@ -55,6 +56,22 @@ The repo now has:
 - A local Learning Lab (6 sections) with keyboard navigation
 - MkDocs + accessibility controls + theme controls
 - A strict local secret-safety posture (no raw student secrets in records)
+- The AlgoQuest Hero Books proof line:
+  - six audience profiles and six Hero Book worlds
+  - first complete `fr-CA` Mage adaptation with 40 prompts across five acts
+  - one-use prompt consumption per `AdventureRun`
+  - deterministic prompt assignment, replay, digests, local resume, and multi-tab conflict detection
+  - `EntryMissionManifest.v1`, `MissionEnvelope.v1`, `FirstProofReceipt.v1`, `ColabNotebookManifest.v1`, `ColabRoundTripReceipt.v1`, and privacy receipts
+  - a generated notebook at `notebooks/mage-two-horizons-primary-5-6-fr-CA.ipynb` and public copy under `public/notebooks/`
+  - a closed Builder WebAuth broker contract that rejects sensitive markers and returns `blocked-live-broker-absent` until live transport is proven
+  - Tenebris-style ephemeral observation contracts, disabled by default, with no mastery authority
+
+Current blockers for any alpha claim:
+
+- no live Builder WebAuth broker
+- no live Colab file/API round trip
+- no real student, teacher, school, or minor approval
+- no final 145-action gate decision
 
 ## 2) Getting started
 
@@ -70,9 +87,22 @@ npm test
 `npm test` maps to:
 
 ```bash
+node scripts/hero-books-phase7-act-structure-test.mjs
+node scripts/hero-books-phase7-prompt-quality-test.mjs
+node scripts/hero-books-contract-test.mjs
+npm run hero-books:a11y-static
 npm run build
 npx tsc --noEmit
 python -m mkdocs build --strict
+npm run hero-books:browser
+npm run hero-books:gate
+```
+
+The browser gate starts Vite preview from the repository root and waits for the `#hero-books` section to hydrate before asserting visible text. Override its default 30 second readiness timeout with:
+
+```powershell
+$env:HERO_BOOKS_BROWSER_TIMEOUT_MS='45000'
+npm run hero-books:browser
 ```
 
 ## 3) Runtime architecture
@@ -124,6 +154,17 @@ python -m mkdocs build --strict
 - `ParadigmsSection.tsx`: greedy path walk, dead-end and completion states
 - `InnovationSection.tsx`: topic selector + generated guidance panel
 
+### 3.4 Hero Books runtime (`services/heroBooks.js`, `App.tsx`)
+
+Hero Books is the new governed adventure path for AlgoQuest. It is designed as an educational "livre dont vous etes le heros" system where prompts are selected from a versioned graph rather than improvised freely.
+
+- AlgoQuest owns mission state, prompt assignment, evidence policy, Qbit boundaries, Tenebris boundaries, and local UI.
+- `mage-two-horizons.primary-5-6.fr-CA.1` is the first complete adaptation.
+- The first Mage adaptation has exactly 40 prompts, max 8 prompts per act, unique titles, unique prompt text, prerequisite depth >= 4, at least 6 evidence kinds, and diversified Builder/Colab/Qbit capabilities.
+- Story points, milestones, badges, ASCII scenes, Builder receipts, Colab receipts, and Qbit narration never become mastery authority.
+- The app exposes two visible paths: adventure view and study/artifact view, synchronized by mission, version, and digest.
+- ASCII output must remain bounded and include a linear equivalent for accessibility.
+
 ## 4) Contract and interoperability model
 
 ### 4.1 Core contracts (`types.ts`)
@@ -155,6 +196,9 @@ python -m mkdocs build --strict
 | `securedme.education.algoquest.outbox.v1` | `readLatestVadLearningEvent` | `educationInterop` | latest validated student learning event |
 | `securedme.education.vot-guardian.outbox.v1` | `readLatestGuardianPointer` | `educationInterop` | latest guardian pointer (read-only) |
 | `securedme.education.algoquest.install-sequence.v1` | `readInstallSequenceFromStorage` / `persistInstallSequence` | `educationInterop` | suite offer + consent + selected tool state |
+| `securedme.education.algoquest.entry-mission-state.v1` | `readEntryMissionState` | `heroBooks` | local entry mission resume state |
+| `securedme.education.algoquest.adventure-run-state.v1` | `readAdventureRuntime` | `heroBooks` | local Hero Books run resume state |
+| `securedme.education.algoquest.privacy-receipts.v1` | `readPrivacyReceipts` | `heroBooks` | bounded local privacy receipt log |
 
 ### 4.4 Suite connectivity and install sequencing
 
@@ -173,6 +217,11 @@ python -m mkdocs build --strict
   - `hasSecretLikeField()` and explicit forbidden token-like key guards.
 - No production-grade claims are made from this repo alone.
 - All outputs and planning are local/simulation-oriented unless a human-reviewed deployment adds approved backend integration.
+- Builder, Colab, Qbit/Codex/Gemini, CodeProject, Timescale, story points, and telemetry have no pedagogical authority in the Hero Books path.
+- Tenebris observations are disabled by default and cannot directly modify mastery.
+- Organization projections require aggregation and must not expose teacher-private activity.
+- Google Colab is an execution surface only; it is not canonical state.
+- The closed Builder WebAuth broker contract is proof of boundary design, not live integration proof.
 
 ## 6) Docs + accessibility stack
 
@@ -182,6 +231,9 @@ python -m mkdocs build --strict
 - Main docs:
   - `docs/index.md`
   - `docs/architecture.md`
+  - `docs/hero-books-pre-alpha.md`
+  - `docs/hero-books-145-action-audit.md`
+  - `docs/hero-books-traceability-matrix.md`
   - `docs/accessibility/edge-user-console.md`
   - `docs/accessibility/neurodivergent-comfort.md`
 
@@ -215,6 +267,16 @@ components/
 services/
   qbitCompanion.ts
   educationInterop.ts
+  heroBooks.js
+scripts/
+  hero-books-phase7-act-structure-test.mjs
+  hero-books-phase7-prompt-quality-test.mjs
+  hero-books-contract-test.mjs
+  hero-books-accessibility-static-test.mjs
+  hero-books-browser-test.mjs
+  hero-books-pre-alpha-gate.mjs
+notebooks/
+  mage-two-horizons-primary-5-6-fr-CA.ipynb
 data/
   educationFixtures.ts
 constants.ts
@@ -280,10 +342,12 @@ git rev-list --objects HEAD | ForEach-Object {
 
 ## 9) Known gaps for next iteration
 
-- No live suite API broker in this repo yet (local contracts are deterministic today).
-- No automated e2e suite-tool contract smoke tests.
+- No live Builder WebAuth broker yet; only the closed contract is proven.
+- No live Colab file/API round trip yet; only notebook generation and receipt validation are proven.
+- No real student, teacher, school, or minor approval.
+- Full 60-capability Builder implementation is still broader than the tested Mage proof.
 - No backend-backed telemetry sink.
-- `npm test` remains the current release-quality gate.
+- `npm test` remains the current release-quality gate, and it now includes Phase 7 prompt quality tests plus the Hero Books browser gate.
 
 ## 10) Governance references
 
