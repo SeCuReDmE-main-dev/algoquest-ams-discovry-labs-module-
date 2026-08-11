@@ -4,8 +4,9 @@ title: AlgoQuest Qbit Education
 version: 0.0.0
 status: public-preview
 license: LicenseRef-SEL-2.0
-summary: Interactive algorithm learning through bounded, inspectable challenges for
-  students and teachers.
+summary: A governed Hero Books learning runtime where AlgoQuest assigns missions,
+  preserves learner-visible state, and alone decides progression from Builder and
+  Colab evidence.
 identity:
   logo: assets/brand-selected/algoquest-logo-lockup.png
   family: AlgoQuest Qbit Education
@@ -31,6 +32,7 @@ commands:
   test:
   - npm test
 boundaries:
-  authority: Learning output is formative evidence. It is not a credential, assessment
-    authority, or autonomous teaching decision.
+  authority: AlgoQuest owns mission assignment and progression. Builder and Colab
+    return bounded formative evidence; neither grades, profiles, or becomes mastery
+    authority.
   human_review_required: true

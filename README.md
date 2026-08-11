@@ -42,7 +42,7 @@
 - Status: **pre-alpha — active public development**
 - License: **Secured Educational License 2.0** (`LicenseRef-SEL-2.0`)
 - AI route governance: official classroom workflows are constrained to **Codex/OpenAI** and **Antigravity/Gemini**.
-- Hero Books status: **pre-alpha proof line, not alpha-ready**. The deterministic core, Phase 7 prompt quality gates, Browser gate, Builder adapter contracts, Colab notebook contract, and privacy boundaries are tested; live Builder WebAuth and live Colab round trip remain blockers.
+- Hero Books status: **pre-alpha proof line, not alpha-ready**. The deterministic core, Phase 7 prompt quality gates, browser gate, authenticated Builder broker implementation, generated notebook parity, v2 receipt admission, and privacy boundaries are tested locally. Live Auth0/HTTPS deployment, unpacked-extension acceptance, live Colab return, and school approval remain blockers.
 
 ---
 
@@ -61,15 +61,16 @@ The repo now has:
   - first complete `fr-CA` Mage adaptation with 40 prompts across five acts
   - one-use prompt consumption per `AdventureRun`
   - deterministic prompt assignment, replay, digests, local resume, and multi-tab conflict detection
-  - `EntryMissionManifest.v1`, `MissionEnvelope.v1`, `FirstProofReceipt.v1`, `ColabNotebookManifest.v1`, `ColabRoundTripReceipt.v1`, and privacy receipts
+  - preserved v1 contracts plus `LearnerProfile.v1`, `MissionEnvelope.v2`, `AlgorithmArtifactReceipt.v2`, and `ColabExecutionReceipt.v2`
   - a generated notebook at `notebooks/mage-two-horizons-primary-5-6-fr-CA.ipynb` and public copy under `public/notebooks/`
-  - a closed Builder WebAuth broker contract that rejects sensitive markers and returns `blocked-live-broker-absent` until live transport is proven
+  - a typed page-to-extension bridge that sends the mission and admits the Builder artifact before the Colab receipt
+  - canonical digest recomputation, mission/artifact binding, stale mission rejection, and secret/identity rejection
   - Tenebris-style ephemeral observation contracts, disabled by default, with no mastery authority
 
 Current blockers for any alpha claim:
 
-- no live Builder WebAuth broker
-- no live Colab file/API round trip
+- no deployed Auth0/HTTPS/Postgres broker acceptance yet
+- no real unpacked-Chromium and live Colab callback acceptance yet
 - no real student, teacher, school, or minor approval
 - no final 145-action gate decision
 
@@ -90,6 +91,7 @@ npm test
 node scripts/hero-books-phase7-act-structure-test.mjs
 node scripts/hero-books-phase7-prompt-quality-test.mjs
 node scripts/hero-books-contract-test.mjs
+node scripts/mage-first-proof-contract-test.mjs
 npm run hero-books:a11y-static
 npm run build
 npx tsc --noEmit
@@ -342,8 +344,8 @@ git rev-list --objects HEAD | ForEach-Object {
 
 ## 9) Known gaps for next iteration
 
-- No live Builder WebAuth broker yet; only the closed contract is proven.
-- No live Colab file/API round trip yet; only notebook generation and receipt validation are proven.
+- The authenticated Builder broker exists and passes local integration tests, but it is not yet deployed and accepted with real Auth0, HTTPS, Postgres, Chromium, and Colab.
+- The no-copy/paste return path is implemented; live Colab acceptance is still pending.
 - No real student, teacher, school, or minor approval.
 - Full 60-capability Builder implementation is still broader than the tested Mage proof.
 - No backend-backed telemetry sink.
