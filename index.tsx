@@ -2,6 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { installMageFirstProofBridge } from './services/mageFirstProofBridge';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -14,4 +15,5 @@ root.render(
     <App />
   </React.StrictMode>
 );
-    
+
+installMageFirstProofBridge();

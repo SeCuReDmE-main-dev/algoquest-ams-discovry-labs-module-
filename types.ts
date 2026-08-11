@@ -81,6 +81,96 @@ export interface AlgorithmArtifactReceipt {
   dry_run: true;
 }
 
+export interface LearnerProfileV1 {
+  schema: 'securedme.education.learner-profile.v1';
+  audience_band: string;
+  role: 'student' | 'teacher' | 'educator-player' | 'adult-learner';
+  language: string;
+  reading_density: string;
+  motion_preference: string;
+  input_preference: string;
+  pacing_preference: string;
+  support_preference: string;
+  organization_ref: string | null;
+  organization_verified: boolean;
+  inferred_traits: false;
+  reversible_preferences: true;
+  raw_identity_stored: false;
+  contract_version: 'v1';
+}
+
+export interface MissionEnvelopeV2 {
+  schema: 'securedme.education.algoquest.mission-envelope.v2';
+  run_id: string;
+  mission_id: string;
+  adaptation_id: string;
+  hero_book_id: string;
+  prompt_assignment_id: string;
+  idempotency_key: string;
+  mission_title: string;
+  objective: string;
+  allowed_capabilities: string[];
+  prefab_version: 'mage-first-proof.v1';
+  prefab_digest: string;
+  profile_projection: Pick<LearnerProfileV1, 'audience_band' | 'role' | 'language' | 'reading_density' | 'motion_preference' | 'input_preference' | 'pacing_preference' | 'support_preference' | 'inferred_traits' | 'raw_identity_stored'>;
+  return_channel_ref: 'securedme.education.mv3-side-panel.v1';
+  expires_at: string;
+  canonical_state_owner: 'algoquest';
+  artifact_owner: 'algorithm-builder-or-colab';
+  contains_canonical_state: false;
+  raw_secret_stored: false;
+  contract_version: 'v2';
+}
+
+export interface AlgorithmArtifactReceiptV2 {
+  schema: 'securedme.education.algorithm-builder.algorithm-artifact-receipt.v2';
+  receipt_id: string;
+  source_app: 'algorithm-builder';
+  target_app: 'algoquest';
+  run_id: string;
+  mission_id: string;
+  adaptation_id: string;
+  hero_book_id: string;
+  prompt_assignment_id: string;
+  idempotency_key: string;
+  attempt_id: string;
+  graph: { nodes: Array<Record<string, unknown>>; edges: Array<Record<string, unknown>> };
+  generated_code: { language: 'python'; digest: string; source: string };
+  local_tests: Array<{ test_id: string; status: 'passed' | 'failed'; details?: string[] }>;
+  artifact_digest: string;
+  raw_secret_stored: false;
+  raw_identity_stored: false;
+  hidden_telemetry_stored: false;
+  contains_canonical_state: false;
+  contract_version: 'v2';
+}
+
+export interface ColabExecutionReceiptV2 {
+  schema: 'securedme.education.colab.execution-receipt.v2';
+  receipt_id: string;
+  provider: 'google-colab' | 'local-sandbox';
+  run_id: string;
+  mission_id: string;
+  adaptation_id: string;
+  prompt_assignment_id: string;
+  artifact_digest: string;
+  generated_code_digest: string;
+  attempt_id: string;
+  execution_result: Record<string, unknown>;
+  model_limit_response: string;
+  tests: Array<{ test_id: string; status: 'passed' | 'failed' }>;
+  executed_at: string;
+  admitted_at: string;
+  contains_identity: false;
+  contains_secret: false;
+  contains_canonical_state: false;
+  hidden_telemetry_stored: false;
+  raw_secret_stored: false;
+  contract_version: 'v2';
+  receipt_digest: string;
+  server_attestation: { alg: 'HS256'; key_ref: string; signature: string };
+}
+
 export interface GuardianArtifactPointer {
   schema: 'securedme.education.artifact-pointer.v1';
   pointer_id: string;

@@ -1,4 +1,5 @@
 import {
+  AlgorithmArtifactReceiptV2,
   AlgorithmArtifactReceipt,
   EducationMetricsEnvelope,
   GatewayInstallSequence,
@@ -15,6 +16,8 @@ import {
 
 export const ALGOQUEST_OUTBOX_STORAGE_KEY = 'securedme.education.algoquest.outbox.v1';
 export const BUILDER_ARTIFACT_OUTBOX_STORAGE_KEY = 'securedme.education.algoquest.algorithm-artifact.outbox.v1';
+export const BUILDER_ARTIFACT_V2_OUTBOX_STORAGE_KEY = 'securedme.education.algoquest.algorithm-artifact.outbox.v2';
+export const COLAB_EXECUTION_V2_OUTBOX_STORAGE_KEY = 'securedme.education.algoquest.colab-execution.outbox.v2';
 export const GUARDIAN_OUTBOX_STORAGE_KEY = 'securedme.education.vot-guardian.outbox.v1';
 export const INSTALL_SEQUENCE_STORAGE_KEY = 'securedme.education.algoquest.install-sequence.v1';
 
@@ -125,6 +128,40 @@ export function isAlgorithmArtifactReceipt(value: unknown): value is AlgorithmAr
     value.dry_run === true &&
     !hasSecretLikeField(value)
   );
+}
+
+function canonicalTransportV2(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalTransportV2).join(',')}]`;
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${canonicalTransportV2(record[key])}`).join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+async function transportDigestV2(value: unknown): Promise<string> {
+  const bytes = new TextEncoder().encode(canonicalTransportV2(value));
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+  return `sha256:${Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('')}`;
+}
+
+export async function validateAlgorithmArtifactReceiptV2(value: unknown, mission: { run_id: string; mission_id: string; prompt_assignment_id: string }): Promise<{ valid: boolean; errors: string[] }> {
+  const errors: string[] = [];
+  if (!isRecord(value) || value.schema !== 'securedme.education.algorithm-builder.algorithm-artifact-receipt.v2') return { valid: false, errors: ['schema-mismatch'] };
+  if (value.run_id !== mission.run_id || value.mission_id !== mission.mission_id || value.prompt_assignment_id !== mission.prompt_assignment_id) errors.push('mission-binding-mismatch');
+  if (value.raw_secret_stored !== false || value.raw_identity_stored !== false || value.hidden_telemetry_stored !== false || value.contains_canonical_state !== false || hasSecretLikeField(value)) errors.push('unsafe-artifact');
+  const generatedCode = value.generated_code;
+  if (!isRecord(generatedCode) || typeof generatedCode.source !== 'string' || await transportDigestV2(generatedCode.source) !== generatedCode.digest) errors.push('code-digest-mismatch');
+  const body = { ...value };
+  delete body.artifact_digest;
+  if (typeof value.artifact_digest !== 'string' || await transportDigestV2(body) !== value.artifact_digest) errors.push('artifact-digest-mismatch');
+  if (!Array.isArray(value.local_tests) || value.local_tests.some((test) => !isRecord(test) || test.status !== 'passed')) errors.push('local-tests-not-passed');
+  return { valid: errors.length === 0, errors };
+}
+
+export function persistBuilderArtifactReceiptV2(receipt: AlgorithmArtifactReceiptV2): void {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(BUILDER_ARTIFACT_V2_OUTBOX_STORAGE_KEY, JSON.stringify([receipt]));
 }
 
 export function isGatewayInstallSequence(value: unknown): value is GatewayInstallSequence {

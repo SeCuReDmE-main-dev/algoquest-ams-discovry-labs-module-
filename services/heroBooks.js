@@ -3,6 +3,8 @@ export const ENTRY_MISSION_STORAGE_KEY = 'securedme.education.algoquest.entry-mi
 export const ADVENTURE_RUN_STORAGE_KEY = 'securedme.education.algoquest.adventure-run-state.v1';
 export const PRIVACY_RECEIPT_STORAGE_KEY = 'securedme.education.algoquest.privacy-receipts.v1';
 export const DECLARED_PREFERENCE_STORAGE_KEY = 'securedme.education.algoquest.declared-preference.v1';
+export const LEARNER_PROFILE_STORAGE_KEY = 'securedme.education.algoquest.learner-profile.v1';
+export const COLAB_EXECUTION_V2_STORAGE_KEY = 'securedme.education.algoquest.colab-execution.outbox.v2';
 
 const SORTED_ARRAY_KEYS = new Set([
   'audience_profiles',
@@ -643,6 +645,137 @@ export const mageMissionEnvelope = {
   raw_secret_stored: false,
   contract_version: CONTRACT_VERSION,
 };
+
+const MAGE_FIRST_PROOF_CARD_TYPES = [
+  'character-sheet',
+  'deterministic-die',
+  'force-vector',
+  'trajectory',
+  'variable-comparison',
+  'model-limit',
+  'test-run',
+  'receipt',
+];
+
+export function createLearnerProfileV1(partial = {}) {
+  return {
+    schema: 'securedme.education.learner-profile.v1',
+    audience_band: partial.audience_band || 'primary-5-6',
+    role: partial.role || 'student',
+    language: partial.language || 'fr-CA',
+    reading_density: partial.reading_density || 'guided',
+    motion_preference: partial.motion_preference || 'reduced-when-requested',
+    input_preference: partial.input_preference || 'pointer-and-keyboard',
+    pacing_preference: partial.pacing_preference || 'self-paced',
+    support_preference: partial.support_preference || 'graduated-hints',
+    organization_ref: partial.organization_ref || null,
+    organization_verified: partial.organization_verified === true,
+    inferred_traits: false,
+    reversible_preferences: true,
+    raw_identity_stored: false,
+    contract_version: 'v1',
+  };
+}
+
+export function readLearnerProfileV1(fallback = createLearnerProfileV1()) {
+  if (typeof localStorage === 'undefined') return fallback;
+  try {
+    const profile = JSON.parse(localStorage.getItem(LEARNER_PROFILE_STORAGE_KEY) || 'null');
+    if (!profile || profile.schema !== 'securedme.education.learner-profile.v1' || profile.inferred_traits !== false || profile.raw_identity_stored !== false) return fallback;
+    return profile;
+  } catch (_error) {
+    return fallback;
+  }
+}
+
+export function persistLearnerProfileV1(profile) {
+  if (typeof localStorage === 'undefined' || !profile || profile.schema !== 'securedme.education.learner-profile.v1' || profile.inferred_traits !== false || profile.raw_identity_stored !== false) return false;
+  localStorage.setItem(LEARNER_PROFILE_STORAGE_KEY, JSON.stringify(profile));
+  return true;
+}
+
+function canonicalTransportV2(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalTransportV2).join(',')}]`;
+  if (value && typeof value === 'object') return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalTransportV2(value[key])}`).join(',')}}`;
+  return JSON.stringify(value);
+}
+
+async function transportDigestV2(value) {
+  const bytes = textEncoder.encode(canonicalTransportV2(value));
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+  return `sha256:${Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('')}`;
+}
+
+export async function createMageMissionEnvelopeV2({ run_id, profile = readLearnerProfileV1(), expires_at = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString() } = {}) {
+  const safeRunId = run_id || `mage-run-${await transportDigestV2(`${mageEntryMissionManifest.mission_id}:${Date.now()}`)}`.replace('sha256:', '').slice(0, 32);
+  const prefab = { version: 'mage-first-proof.v1', card_types: MAGE_FIRST_PROOF_CARD_TYPES };
+  return {
+    schema: 'securedme.education.algoquest.mission-envelope.v2',
+    run_id: safeRunId,
+    mission_id: mageEntryMissionManifest.mission_id,
+    adaptation_id: mageTwoHorizonsPrimaryFr.adaptation_id,
+    hero_book_id: mageTwoHorizonsPrimaryFr.hero_book_id,
+    prompt_assignment_id: 'mage-p03-build-force',
+    idempotency_key: `mage-first-proof:${safeRunId}:mage-p03-build-force`,
+    mission_title: 'Premiere trajectoire du Mage des Deux Horizons',
+    objective: mageEntryMissionManifest.first_objective,
+    allowed_capabilities: [...MAGE_FIRST_PROOF_CARD_TYPES],
+    prefab_version: prefab.version,
+    prefab_digest: await transportDigestV2(prefab),
+    profile_projection: {
+      audience_band: profile.audience_band,
+      role: profile.role,
+      language: profile.language,
+      reading_density: profile.reading_density,
+      motion_preference: profile.motion_preference,
+      input_preference: profile.input_preference,
+      pacing_preference: profile.pacing_preference,
+      support_preference: profile.support_preference,
+      inferred_traits: false,
+      raw_identity_stored: false,
+    },
+    return_channel_ref: 'securedme.education.mv3-side-panel.v1',
+    expires_at,
+    canonical_state_owner: 'algoquest',
+    artifact_owner: 'algorithm-builder-or-colab',
+    contains_canonical_state: false,
+    raw_secret_stored: false,
+    contract_version: 'v2',
+  };
+}
+
+export function validateMageMissionEnvelopeV2(mission, now = Date.now()) {
+  const errors = [];
+  if (!mission || mission.schema !== 'securedme.education.algoquest.mission-envelope.v2') return { valid: false, errors: ['schema-mismatch'] };
+  if (!mission.run_id || !mission.prompt_assignment_id || !mission.prefab_digest || !mission.idempotency_key) errors.push('mission-binding-incomplete');
+  if (mission.canonical_state_owner !== 'algoquest' || mission.contains_canonical_state !== false) errors.push('authority-inversion');
+  if (!Array.isArray(mission.allowed_capabilities) || mission.allowed_capabilities.some((capability) => !MAGE_FIRST_PROOF_CARD_TYPES.includes(capability))) errors.push('capability-not-allowed');
+  if (!mission.profile_projection || mission.profile_projection.inferred_traits !== false || mission.profile_projection.raw_identity_stored !== false || mission.raw_secret_stored !== false) errors.push('unsafe-mission');
+  if (!Number.isFinite(Date.parse(mission.expires_at)) || Date.parse(mission.expires_at) <= now) errors.push('mission-expired');
+  return { valid: errors.length === 0, errors };
+}
+
+export async function validateColabExecutionReceiptV2(receipt, { mission, artifact_digest } = {}) {
+  const errors = [];
+  if (!receipt || receipt.schema !== 'securedme.education.colab.execution-receipt.v2') return { valid: false, errors: ['schema-mismatch'] };
+  if (!mission || receipt.run_id !== mission.run_id || receipt.mission_id !== mission.mission_id || receipt.prompt_assignment_id !== mission.prompt_assignment_id) errors.push('mission-binding-mismatch');
+  if (!artifact_digest || receipt.artifact_digest !== artifact_digest) errors.push('artifact-binding-mismatch');
+  if (!Array.isArray(receipt.tests) || receipt.tests.some((test) => !test || test.status !== 'passed')) errors.push('execution-tests-not-passed');
+  if (String(receipt.model_limit_response || '').trim().length < 20) errors.push('model-limit-too-short');
+  if (receipt.contains_identity !== false || receipt.contains_secret !== false || receipt.contains_canonical_state !== false || receipt.hidden_telemetry_stored !== false || receipt.raw_secret_stored !== false) errors.push('unsafe-execution-receipt');
+  const body = { ...receipt };
+  delete body.receipt_digest;
+  delete body.server_attestation;
+  if (await transportDigestV2(body) !== receipt.receipt_digest) errors.push('receipt-digest-mismatch');
+  if (!receipt.server_attestation || receipt.server_attestation.alg !== 'HS256' || !String(receipt.server_attestation.signature || '').startsWith('hmac-sha256:')) errors.push('broker-attestation-missing');
+  return { valid: errors.length === 0, errors };
+}
+
+export function persistColabExecutionReceiptV2(receipt) {
+  if (typeof localStorage === 'undefined') return false;
+  localStorage.setItem(COLAB_EXECUTION_V2_STORAGE_KEY, JSON.stringify([receipt]));
+  return true;
+}
 
 export function createEntryMissionState({ mission = mageEntryMissionManifest, mode = 'textual', state = 'ready' } = {}) {
   if (!mission.entry_modes.includes(mode)) {
@@ -2188,4 +2321,3 @@ export const citadelMissionEnvelope = {
   raw_secret_stored: false,
   contract_version: 'v1.0.0',
 };
-
