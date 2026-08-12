@@ -19,7 +19,6 @@ import {
   readLatestVadLearningEvent,
 } from '../../services/educationInterop';
 import {
-  buildSession,
   expectedSurfaceForRole,
   getConsentScope,
   renderQbitBadge,
@@ -27,6 +26,12 @@ import {
   renderQbitPlanner,
   validateGatewayContext,
 } from '../../services/qbitCompanion';
+import {
+  beginGatewayLogin,
+  endGatewaySession,
+  GatewaySessionV2,
+  loadGatewaySession,
+} from '../../services/gatewaySession';
 import {
   EducationMetricsEnvelope,
   EducationSurface,
@@ -413,19 +418,8 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
   });
   const [qbitEnabled, setQbitEnabled] = useState<boolean>(getConsentScope(activeInstallSequence) !== 'none');
   const [reducedMotion, setReducedMotion] = useState<boolean>(true);
-  const [sessionRole, setSessionRole] = useState<GatewayRole>(() => {
-    const searchRole = new URLSearchParams(window.location.search).get('role') as GatewayRole | null;
-    if (searchRole === 'student_adult' || searchRole === 'student_minor' || searchRole === 'teacher') {
-      if (surface === 'teacher') {
-        return 'teacher';
-      }
-      if (searchRole === 'teacher') {
-        return 'student_minor';
-      }
-      return searchRole;
-    }
-    return surface === 'teacher' ? 'teacher' : 'student_minor';
-  });
+  const [session, setSession] = useState<GatewaySessionV2 | null>(null);
+  const [sessionState, setSessionState] = useState<'loading' | 'ready' | 'required' | 'error'>('loading');
   const learningEvent = useMemo(() => readLatestVadLearningEvent(vadValidatedAlgorithmEvent), []);
   const guardianPointer = useMemo(() => readLatestGuardianPointer(), []);
   const planningEvent = useMemo(
@@ -439,11 +433,63 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
     persistInstallSequence(activeInstallSequence);
   }, [activeInstallSequence]);
 
-  const session = useMemo(() => buildSession(surface === 'teacher' ? 'teacher' : sessionRole, surface), [surface, sessionRole]);
+  useEffect(() => {
+    let active = true;
+    loadGatewaySession()
+      .then((nextSession) => {
+        if (!active) return;
+        setSession(nextSession);
+        setSessionState('ready');
+      })
+      .catch((error: Error) => {
+        if (!active) return;
+        setSessionState(error.message === 'session_required' ? 'required' : 'error');
+      });
+    return () => { active = false; };
+  }, []);
 
-  const guardErrors = validateGatewayContext(session, surface);
-  const expectedSurface = expectedSurfaceForRole(session.role);
-  const audience = audienceCopy(session.role);
+  if (sessionState !== 'ready' || !session) {
+    return (
+      <main className="min-h-screen bg-slate-100 p-6 text-slate-950">
+        <section className="mx-auto mt-20 max-w-xl rounded-md border border-slate-200 bg-white p-6 shadow-sm">
+          <img src={algoQuestTinyMark} alt="" className="h-12 w-12 rounded-md object-contain" />
+          <h1 className="mt-5 text-2xl font-black">SecuredMe session</h1>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            {sessionState === 'loading' && 'Checking your Gateway session.'}
+            {sessionState === 'required' && 'Sign in through the SecuredMe Gateway to open AlgoQuest.'}
+            {sessionState === 'error' && 'The identity Gateway is temporarily unavailable. No local role has been granted.'}
+          </p>
+          {sessionState === 'required' && (
+            <button type="button" onClick={beginGatewayLogin} className="mt-5 rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white">
+              Sign in with SecuredMe
+            </button>
+          )}
+        </section>
+      </main>
+    );
+  }
+
+  const sessionRole: GatewayRole = session.role === 'teacher' ? 'teacher' : session.role === 'student_adult' ? 'student_adult' : 'student_minor';
+  const sessionV1 = {
+    schema: 'securedme.education.session-role.v1' as const,
+    session_id: session.session_id,
+    fingerprint_ref: session.identity_ref,
+    role: sessionRole,
+    age_band: session.age_band,
+    surface: sessionRole === 'teacher' ? 'teacher' as const : 'student' as const,
+    consent_scope: session.consent_scope,
+    allowed_tools: session.allowed_tools,
+    expires_at: session.expires_at,
+    contract_version: 'v1' as const,
+    raw_secret_stored: false as const,
+  };
+  const guardErrors = [
+    ...validateGatewayContext(sessionV1, surface),
+    ...(session.authorization_basis.decision !== 'allow' ? ['authorization-denied'] : []),
+    ...(!session.allowed_tools.includes('algoquest') ? ['tool-not-authorized'] : []),
+  ];
+  const expectedSurface = expectedSurfaceForRole(sessionRole);
+  const audience = audienceCopy(sessionRole);
   const consentScope = getConsentScope(activeInstallSequence);
 
   const installScopeTitle = sequenceCopy(activeInstallSequence.algoquest_offer_status);
@@ -485,22 +531,6 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
     setQbitEnabled(nextScope !== 'none');
   };
 
-  const setRole = (nextRole: GatewayRole) => {
-    if (surface !== 'teacher' && (nextRole === 'student_minor' || nextRole === 'student_adult')) {
-      setSessionRole(nextRole);
-      const sequenceByRole = {
-        ...activeInstallSequence,
-        role: nextRole,
-      };
-      persistInstallSequence(sequenceByRole);
-      setActiveInstallSequence(sequenceByRole);
-      const params = new URLSearchParams(window.location.search);
-      params.set('role', nextRole);
-      const query = params.toString();
-      window.history.replaceState({}, '', `/${surface}${query ? `?${query}` : ''}`);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
       <div className="flex min-h-screen flex-col lg:flex-row">
@@ -516,7 +546,7 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
           </div>
 
           <div className="mt-6 space-y-2">
-            <StatusPill label="Gateway WebAuth verified" tone="green" />
+            <StatusPill label="Gateway session verified" tone="green" />
             <StatusPill label={`role ${session.role}`} tone="blue" />
             <StatusPill label={`expected /${expectedSurface}`} tone="slate" />
             <StatusPill label={audience.label} tone={audience.tone} />
@@ -553,31 +583,18 @@ const EducationHub: React.FC<EducationHubProps> = ({ surface, onNavigateSurface,
             </button>
           </nav>
 
-          {surface === 'student' && (
-            <div className="mt-8 rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Learner profile</p>
-              <div className="mt-3 grid gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRole('student_minor')}
-                  className={`rounded-md border px-3 py-2 text-left text-sm font-semibold ${
-                    sessionRole === 'student_minor' ? 'bg-slate-950 text-white' : 'bg-white text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  {roleLabel('student_minor')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole('student_adult')}
-                  className={`rounded-md border px-3 py-2 text-left text-sm font-semibold ${
-                    sessionRole === 'student_adult' ? 'bg-slate-950 text-white' : 'bg-white text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  {roleLabel('student_adult')}
-                </button>
-              </div>
-            </div>
-          )}
+          <div className="mt-8 rounded-md border border-slate-200 bg-slate-50 p-3">
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Assigned profile</p>
+            <p className="mt-2 text-sm font-semibold text-slate-800">{roleLabel(sessionRole)}</p>
+            <p className="mt-1 text-xs text-slate-600">{session.authority_ref}</p>
+            <button
+              type="button"
+              onClick={() => endGatewaySession(session).then(() => window.location.reload())}
+              className="mt-3 rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100"
+            >
+              Sign out
+            </button>
+          </div>
 
           <div className="mt-8 rounded-lg border border-slate-200 bg-slate-50 p-3">
             <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Install order</p>
