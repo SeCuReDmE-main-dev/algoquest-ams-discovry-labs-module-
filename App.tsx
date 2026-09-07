@@ -45,6 +45,12 @@ import landingDark from './assets/landing/landing-dark.png';
 import landingLight from './assets/landing/landing-light.png';
 import logoIconDark from './assets/landing/logo-icon-dark.png';
 import wordmarkDark from './assets/landing/wordmark-dark.png';
+import HeroBookCockpit from './components/heroBooks/HeroBookCockpit';
+import { registerAlgoQuestWebMcp } from './services/algoQuestWebMcp';
+
+// Discovery is intentionally available before any login; all EXECUTE handlers
+// still require an optimistic revision and remain owned by AlgoQuest.
+registerAlgoQuestWebMcp();
 
 const SECTION_ORDER: SectionId[] = [
   SectionId.Home,
@@ -576,6 +582,7 @@ const LandingPage: React.FC<{
                   className="mt-3 min-h-36 w-full rounded-md border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-300"
                 />
               </div>
+              <HeroBookCockpit />
               <div className="mt-4 rounded-lg border border-blue-300/20 bg-slate-950/65 p-4">
                 <p className="text-xs font-black uppercase tracking-wide text-blue-300">Builder receipt import</p>
                 <p className="mt-2 text-sm leading-6 text-slate-300">
