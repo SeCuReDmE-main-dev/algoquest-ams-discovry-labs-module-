@@ -47,10 +47,13 @@ import logoIconDark from './assets/landing/logo-icon-dark.png';
 import wordmarkDark from './assets/landing/wordmark-dark.png';
 import HeroBookCockpit from './components/heroBooks/HeroBookCockpit';
 import { registerAlgoQuestWebMcp } from './services/algoQuestWebMcp';
+import { createGameRun, projectHeroSheet } from './services/gameEngine.js';
+import { getBrowserGameHost } from './services/gameHost.js';
 
 // Discovery is intentionally available before any login; all EXECUTE handlers
 // still require an optimistic revision and remain owned by AlgoQuest.
 registerAlgoQuestWebMcp();
+const gameHost = getBrowserGameHost();
 
 const SECTION_ORDER: SectionId[] = [
   SectionId.Home,
@@ -208,6 +211,10 @@ const LandingPage: React.FC<{
   const [colabReceiptImport, setColabReceiptImport] = useState('');
   const [colabReceiptStatus, setColabReceiptStatus] = useState('No imported Colab receipt yet.');
   const [adventureRuntime, setAdventureRuntime] = useState(() => readAdventureRuntime());
+  const [gameState, setGameState] = useState(() => gameHost.getState());
+  const [gameBusy, setGameBusy] = useState(false);
+  const [gameError, setGameError] = useState<string | null>(null);
+  const [gameSurface, setGameSurface] = useState<'board' | 'sheet'>('board');
   const [replayStatus, setReplayStatus] = useState('Replay not run yet.');
   const [privacyReceipt, setPrivacyReceipt] = useState('No privacy receipt generated yet.');
   const [privacyReceiptCount, setPrivacyReceiptCount] = useState(() => readPrivacyReceipts().length);
@@ -236,6 +243,39 @@ const LandingPage: React.FC<{
   useEffect(() => {
     persistAdventureRuntime(adventureRuntime);
   }, [adventureRuntime]);
+
+  useEffect(() => {
+    const unsubscribe = gameHost.subscribe(setGameState);
+    gameHost.initialize().then(setGameState).catch((error: Error) => setGameError(error.message));
+    return unsubscribe;
+  }, []);
+
+  const sendGameCommand = async (type: string, payload: Record<string, unknown> = {}) => {
+    setGameBusy(true);
+    setGameError(null);
+    try {
+      const result = await gameHost.dispatch(type, payload);
+      if (!result.ok) throw new Error(result.error || 'La commande n’a pas été acceptée.');
+      setGameState(result.state);
+      return result;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setGameError(message);
+      throw error;
+    } finally {
+      setGameBusy(false);
+    }
+  };
+
+  const resetGame = async () => {
+    setGameBusy(true);
+    setGameError(null);
+    try {
+      setGameState(await gameHost.replaceRun(createGameRun()));
+    } finally {
+      setGameBusy(false);
+    }
+  };
 
   const routeSurface = (event: React.MouseEvent<HTMLAnchorElement>, surface: EducationSurface) => {
     event.preventDefault();
@@ -286,6 +326,11 @@ const LandingPage: React.FC<{
     ?? mageTwoHorizonsPrimaryFr.prompt_nodes.find((node) => node.prompt_id === adventureRuntime.quest_state.consumed_prompt_ids.at(-1))
     ?? mageTwoHorizonsPrimaryFr.prompt_nodes[0];
   const currentAsciiScene = renderAsciiScene(currentPromptNode);
+  const gamePromptNode = mageTwoHorizonsPrimaryFr.prompt_nodes.find((node) => node.prompt_id === gameState.active_prompt_id) ?? mageTwoHorizonsPrimaryFr.prompt_nodes[0];
+  const gameScene = renderAsciiScene(gamePromptNode);
+  const gameProjection = projectHeroSheet(gameState);
+  const latestGameSimulation = gameState.simulations.at(-1);
+  const trajectoryPoints = latestGameSimulation?.points.map((point: { x: number; y: number }) => `${20 + point.x * 8},${130 - point.y * 6}`).join(' ') || '';
 
   const advanceAdventure = async () => {
     const nextRuntime = await advanceAdventureRuntime(adventureRuntime);
@@ -543,12 +588,56 @@ const LandingPage: React.FC<{
         </section>
 
         <section id="hero-books" className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+          <div className="mb-10">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Le Mage des Deux Horizons · première aventure jouable</p>
+            <h2 className="mt-3 max-w-4xl font-serif text-4xl font-black text-white sm:text-5xl">Le ciel répond à ce que tu construis.</h2>
+            <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">La planche et le grimoire partagent la même partie. Choisis une voie, forge une force, observe sa trajectoire et fais évoluer ton héros.</p>
+          </div>
+          <nav className="mb-4 grid grid-cols-2 gap-2 xl:hidden" aria-label="Vues de l’aventure">
+            <button type="button" aria-pressed={gameSurface === 'board'} aria-controls="algoquest-game-board" onClick={() => setGameSurface('board')} className={`rounded-xl border px-4 py-3 text-sm font-black focus:outline-none focus:ring-2 focus:ring-cyan-200 ${gameSurface === 'board' ? 'border-amber-300 bg-amber-300 text-slate-950' : 'border-slate-600 bg-slate-900 text-slate-100'}`}>Planche</button>
+            <button type="button" aria-pressed={gameSurface === 'sheet'} aria-controls="algoquest-hero-sheet" onClick={() => setGameSurface('sheet')} className={`rounded-xl border px-4 py-3 text-sm font-black focus:outline-none focus:ring-2 focus:ring-cyan-200 ${gameSurface === 'sheet' ? 'border-cyan-300 bg-cyan-300 text-slate-950' : 'border-slate-600 bg-slate-900 text-slate-100'}`}>Fiche du héros</button>
+          </nav>
+          <div className="mb-12 grid items-stretch gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(340px,0.75fr)]">
+            <article id="algoquest-game-board" className={`${gameSurface === 'sheet' ? 'hidden xl:block' : ''} relative min-h-[640px] overflow-hidden rounded-[24px] border border-amber-200/30 bg-[radial-gradient(circle_at_70%_10%,rgba(60,182,190,0.20),transparent_28%),linear-gradient(145deg,#111d2d,#060b14_65%)] p-5 shadow-2xl shadow-black/40 sm:p-8`}>
+              <div className="absolute inset-0 opacity-[0.07]" aria-hidden="true" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.2) 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+              <div className="relative flex h-full flex-col">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <span className="rounded-full border border-cyan-300/30 bg-cyan-950/40 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-cyan-100">Acte {gamePromptNode.act_id.replace('act-', '')}</span>
+                  <span className="text-xs font-bold text-amber-100">{gameState.completed_prompt_ids.length} / {gameState.assigned_prompt_ids.length} étapes</span>
+                </div>
+                <div className="mt-8 max-w-2xl">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-300">{gameState.branch_id ? `Voie · ${gameState.branch_id}` : 'Un choix attend ton héros'}</p>
+                  <h3 className="mt-3 font-serif text-3xl font-black text-white sm:text-4xl">{gamePromptNode.title}</h3>
+                  <p className="mt-4 text-base leading-8 text-slate-200">{gamePromptNode.prompt_text}</p>
+                </div>
+                <div className="mt-8 grid flex-1 place-items-center rounded-2xl border border-white/10 bg-black/25 p-4">
+                  {latestGameSimulation ? <svg viewBox="0 0 420 160" className="max-h-64 w-full" role="img" aria-label="Trajectoire calculée par les paramètres du héros">
+                    <defs><linearGradient id="trajectory-glow" x1="0" x2="1"><stop stopColor="#6ce5e8"/><stop offset="1" stopColor="#e8bd66"/></linearGradient></defs>
+                    <path d="M20 130 H400 M20 20 V130" stroke="#405269" strokeWidth="1" fill="none" />
+                    <polyline points={trajectoryPoints} fill="none" stroke="url(#trajectory-glow)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+                    {latestGameSimulation.points.map((point: { t: number; x: number; y: number }) => <circle key={point.t} cx={20 + point.x * 8} cy={130 - point.y * 6} r="4" fill="#eef7ed" />)}
+                  </svg> : <pre className="overflow-x-auto text-center font-mono text-sm leading-6 text-cyan-100">{gameScene.art.join('\n')}</pre>}
+                </div>
+                {gameState.comparison && <div className="mt-4 rounded-xl border border-amber-300/25 bg-amber-950/20 p-4 text-sm text-amber-100"><b>Le ciel a changé :</b> ΔX {gameState.comparison.final_delta.x}, ΔY {gameState.comparison.final_delta.y}. Cette conséquence vient du même état que la fiche.</div>}
+                {gameState.assistance.last_hint && <div className="mt-4 rounded-xl border border-cyan-300/20 bg-cyan-950/25 p-4 text-sm text-cyan-50"><b>Qbit :</b> {gameState.assistance.last_hint}</div>}
+                {gameError && <p role="alert" className="mt-4 rounded-xl border border-rose-300/30 bg-rose-950/30 p-3 text-sm text-rose-100">{gameError} Ton activité et ton travail sont conservés.</p>}
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <button type="button" disabled={gameBusy} onClick={() => { sendGameCommand('REQUEST_HINT').catch(() => undefined); }} className="rounded-lg border border-cyan-200/40 px-4 py-2 text-xs font-black text-cyan-50 hover:bg-cyan-500/10 focus:outline-none focus:ring-2 focus:ring-cyan-200">Demander à Qbit</button>
+                  <button type="button" disabled={gameBusy || gameState.pending_upgrade} onClick={() => { sendGameCommand('COMPLETE_ACTIVITY').catch(() => undefined); }} className="rounded-lg bg-amber-300 px-4 py-2 text-xs font-black text-slate-950 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-white">Sceller depuis la planche</button>
+                  <button type="button" disabled={gameBusy} onClick={resetGame} className="rounded-lg border border-slate-500 px-4 py-2 text-xs font-black text-slate-200 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-300">Nouvelle aventure</button>
+                </div>
+              </div>
+            </article>
+            <div id="algoquest-hero-sheet" className={gameSurface === 'board' ? 'hidden xl:block' : ''}>
+              <HeroBookCockpit projection={gameProjection} onCommand={sendGameCommand} busy={gameBusy} error={gameError} />
+            </div>
+          </div>
           <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
             <div>
               <p className="text-xs font-black uppercase tracking-wide text-emerald-300">Hero Books proof line</p>
               <h2 className="mt-3 text-3xl font-black text-white">A first governed adventure path, not an alpha dependency.</h2>
               <p className="mt-4 text-sm leading-7 text-slate-300">
-                The first proof is {HERO_BOOK_PROOF.firstWorld.title}: primary 5-6, fr-CA, twelve real prompt nodes,
+                The first proof is {HERO_BOOK_PROOF.firstWorld.title}: primary 5-6, fr-CA, forty authored prompt nodes and a fixed twenty-activity run,
                 deterministic replay, and a Builder artifact receipt. Story points move the adventure; LearningEvidence stays separate.
               </p>
               <div className="mt-5 rounded-lg border border-emerald-300/20 bg-slate-950/65 p-4">
@@ -582,7 +671,6 @@ const LandingPage: React.FC<{
                   className="mt-3 min-h-36 w-full rounded-md border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-300"
                 />
               </div>
-              <HeroBookCockpit />
               <div className="mt-4 rounded-lg border border-blue-300/20 bg-slate-950/65 p-4">
                 <p className="text-xs font-black uppercase tracking-wide text-blue-300">Builder receipt import</p>
                 <p className="mt-2 text-sm leading-6 text-slate-300">

@@ -1,0 +1,10 @@
+{
+  "schema": "securedme.education.local-package-lock.v1",
+  "name": "@securedme/hero-sheet",
+  "version": "1.0.2",
+  "file": "securedme-hero-sheet-1.0.2.tgz",
+  "sha256": "3640b1e400d4f2d8683b66ddfbf034a8003806429362d91a7cdb6fa9b77aee6e",
+  "source_repository": "algorithm-builder-app",
+  "source_path": "packages/hero-sheet",
+  "generated_from_clean_source": false
+}

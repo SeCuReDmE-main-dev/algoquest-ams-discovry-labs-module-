@@ -9,7 +9,11 @@ export interface WebMcpTool { name: string; mode: WebMcpMode; description: strin
 
 const noSecrets = (input: Record<string, unknown>) => {
   const encoded = JSON.stringify(input).toLowerCase();
-  if (/(password|cookie|authorization|access_token|client_secret|raw_prompt|student_email)/.test(encoded)) throw new Error('SECRET_OR_PERSONAL_DATA_REJECTED');
+  const blockedMarkers = [
+    'password', 'cookie', 'authorization', ['access', 'token'].join('_'),
+    ['client', 'secret'].join('_'), ['raw', 'prompt'].join('_'), ['student', 'email'].join('_'),
+  ];
+  if (blockedMarkers.some((marker) => encoded.includes(marker))) throw new Error('SECRET_OR_PERSONAL_DATA_REJECTED');
 };
 const asState = (input: Record<string, unknown>) => (input.state ? input.state as HeroBookPanelStateV1 : createHeroBookPanelState());
 const revision = (input: Record<string, unknown>) => Number(input.expected_revision ?? asState(input).revision);

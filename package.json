@@ -7,25 +7,39 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "validate": "npm run build && npx tsc --noEmit && python -m mkdocs build --strict",
-    "test": "node scripts/gateway-session-boundary-test.mjs && node scripts/hero-books-phase7-act-structure-test.mjs && node scripts/hero-books-phase7-prompt-quality-test.mjs && node scripts/hero-books-contract-test.mjs && node scripts/hero-book-cockpit-static-test.mjs && node scripts/mage-first-proof-contract-test.mjs && npm run hero-books:a11y-static && npm run validate && npm run hero-books:browser && npm run hero-books:gate",
+    "mobile:sync": "npm run build && cap sync",
+    "mobile:android": "npm run mobile:sync && cap run android",
+    "mobile:android:verify": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-android-build.ps1",
+    "validate": "npm run build && node node_modules/typescript/bin/tsc --noEmit && node scripts/run-shared-python.mjs -m mkdocs build --strict",
+    "test": "node scripts/gateway-session-boundary-test.mjs && node scripts/hero-books-phase7-act-structure-test.mjs && node scripts/hero-books-phase7-prompt-quality-test.mjs && node scripts/hero-books-contract-test.mjs && node scripts/game-engine-contract-test.mjs && node scripts/game-host-contract-test.mjs && node scripts/game-host-parity-test.mjs && node scripts/native-game-storage-test.mjs && node scripts/hero-sheet-package-test.mjs && node scripts/hero-book-cockpit-static-test.mjs && node scripts/mage-first-proof-contract-test.mjs && npm run hero-books:a11y-static && npm run validate && npm run hero-books:browser && npm run hero-books:gate",
     "test:gateway": "node scripts/gateway-session-boundary-test.mjs",
     "hero-books:gate": "node scripts/hero-books-pre-alpha-gate.mjs",
     "hero-books:a11y-static": "node scripts/hero-books-accessibility-static-test.mjs",
     "hero-books:browser": "node scripts/hero-books-browser-test.mjs",
+    "integration:builder-extension": "node scripts/builder-extension-browser-test.mjs",
     "cpai:start": "powershell -NoProfile -ExecutionPolicy Bypass -File infra/codeproject-ai/start.ps1",
     "cpai:health": "node infra/codeproject-ai/client.mjs health",
     "cpai:mesh": "node infra/codeproject-ai/client.mjs mesh",
     "cpai:stop": "powershell -NoProfile -ExecutionPolicy Bypass -File infra/codeproject-ai/stop.ps1"
   },
   "dependencies": {
+    "@capacitor/android": "8.5.1",
+    "@capacitor/core": "8.5.1",
+    "@capacitor/filesystem": "8.1.3",
+    "@capacitor/ios": "8.5.1",
+    "@capacitor/preferences": "8.0.1",
+    "@securedme/hero-sheet": "file:vendor/securedme-hero-sheet-1.0.2.tgz",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "8.4.3",
     "@playwright/test": "^1.62.1",
     "@types/node": "^22.14.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
+  },
+  "overrides": {
+    "nanoid": "3.3.18"
   }
 }

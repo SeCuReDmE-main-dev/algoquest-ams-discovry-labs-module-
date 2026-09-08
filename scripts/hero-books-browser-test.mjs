@@ -59,6 +59,7 @@ try {
     const page = await browser.newPage({
       viewport: profile.viewport,
       isMobile: Boolean(profile.isMobile),
+      hasTouch: Boolean(profile.isMobile),
     });
     let cdpSession = null;
     if (profile.cpuThrottle) {
@@ -118,6 +119,49 @@ async function runHeroBooksFlow(page, profileName, { performanceBudget = false }
   await expectVisibleText(page, 'Builder receipt import');
   await expectVisibleText(page, 'Colab notebook round trip');
   await expectVisibleText(page, 'Privacy & Permissions Ledger');
+  await expectVisibleText(page, 'Le ciel répond à ce que tu construis.');
+
+  const usesGameViewSwitcher = profileName === 'tablet' || profileName === 'mobile';
+  const switchGameView = async (name) => {
+    if (!usesGameViewSwitcher) return;
+    const control = page.getByRole('button', { name, exact: true });
+    if (profileName === 'mobile') await control.tap();
+    else await control.click();
+  };
+  await switchGameView('Fiche du héros');
+  const sharedSheet = page.getByTestId('hero-sheet-embedded');
+  await sharedSheet.waitFor({ state: 'visible' });
+  await sharedSheet.getByRole('tab', { name: 'Qbit' }).click();
+  await sharedSheet.getByRole('button', { name: 'Demander une lanterne' }).click();
+  await sharedSheet.getByText('Observe une seule différence', { exact: false }).waitFor({ state: 'visible' });
+  await sharedSheet.getByRole('tab', { name: 'Mission' }).click();
+  await sharedSheet.getByRole('button', { name: 'L’horizon lointain' }).click();
+  await switchGameView('Planche');
+  await expectVisibleText(page, 'Voie · far-horizon');
+  await page.getByRole('button', { name: 'Sceller depuis la planche' }).click();
+  await expectVisibleText(page, 'Le premier vecteur');
+  await page.getByRole('button', { name: 'Sceller depuis la planche' }).click();
+  await expectVisibleText(page, 'Le profil du Mage');
+  await page.getByRole('button', { name: 'Sceller depuis la planche' }).click();
+  await expectVisibleText(page, 'Forger la force');
+  await switchGameView('Fiche du héros');
+  await sharedSheet.getByRole('tab', { name: 'Atelier' }).click();
+  if (usesGameViewSwitcher) {
+    const reflection = sharedSheet.getByLabel('Note de modèle');
+    await reflection.fill('Mon brouillon reste dans la fiche pendant le retour à la planche.');
+    await switchGameView('Planche');
+    await switchGameView('Fiche du héros');
+    assert.equal(await reflection.inputValue(), 'Mon brouillon reste dans la fiche pendant le retour à la planche.', `${profileName} view navigation preserves the Hero Sheet draft`);
+  }
+  await sharedSheet.getByLabel('Force X').fill('4');
+  await sharedSheet.getByRole('button', { name: 'Équiper la force' }).click();
+  await sharedSheet.getByRole('button', { name: 'Lancer' }).click();
+  await switchGameView('Planche');
+  await page.getByRole('img', { name: 'Trajectoire calculée par les paramètres du héros' }).waitFor({ state: 'visible' });
+  await switchGameView('Fiche du héros');
+  await sharedSheet.getByRole('tab', { name: 'Mission' }).click();
+  await sharedSheet.getByRole('button', { name: 'Sceller cette étape' }).click();
+  await sharedSheet.getByText('Tracer la route', { exact: false }).waitFor({ state: 'visible' });
 
   for (const label of [
     'Mission envelope JSON export for Algorithm Builder',
@@ -190,6 +234,13 @@ async function runHeroBooksFlow(page, profileName, { performanceBudget = false }
     await locator.focus();
     const focusedName = await page.evaluate(() => document.activeElement?.textContent?.trim());
     assert.equal(focusedName, name, `${profileName} ${name} should be focusable`);
+  }
+  if (usesGameViewSwitcher) {
+    for (const name of ['Planche', 'Fiche du héros']) {
+      const locator = page.getByRole('button', { name, exact: true });
+      await locator.focus();
+      assert.equal(await locator.evaluate((element) => document.activeElement === element), true, `${profileName} ${name} switch should be keyboard focusable`);
+    }
   }
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

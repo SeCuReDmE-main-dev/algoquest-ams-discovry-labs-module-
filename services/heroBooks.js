@@ -136,7 +136,7 @@ export const mageTwoHorizonsPrimaryFr = {
   locale: 'fr-CA',
   audience_id: 'primary-5-6',
   version: '1.0.0',
-  prompt_bank_size: 12,
+  prompt_bank_size: 40,
   max_prompt_slots: 40,
   acts: [
     { act_id: 'act-1', title: 'Le ciel bouge', required_node_types: ['StoryAnchorNode', 'ChoiceNode'] },
