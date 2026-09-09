@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { AlgorithmArtifactReceipt, EducationSurface, SectionId } from './types';
 import EducationHub from './components/education/EducationHub';
 import HomeSection from './components/sections/HomeSection';
@@ -49,6 +50,7 @@ import HeroBookCockpit from './components/heroBooks/HeroBookCockpit';
 import { registerAlgoQuestWebMcp } from './services/algoQuestWebMcp';
 import { createGameRun, projectHeroSheet } from './services/gameEngine.js';
 import { getBrowserGameHost } from './services/gameHost.js';
+import AlgoQuestGameShell from './components/game/AlgoQuestGameShell';
 
 // Discovery is intentionally available before any login; all EXECUTE handlers
 // still require an optimistic revision and remain owned by AlgoQuest.
@@ -163,7 +165,7 @@ const UtilityDock: React.FC = () => {
   };
 
   return (
-    <aside className="fixed bottom-4 right-4 z-[80] flex max-w-[calc(100vw-2rem)] flex-col items-end gap-2" aria-label="SecuredMe utility controls">
+    <aside className="aq-utility-dock fixed bottom-4 right-4 z-[80] flex max-w-[calc(100vw-2rem)] flex-col items-end gap-2" aria-label="SecuredMe utility controls">
       <button
         type="button"
         onClick={nextLanguage}
@@ -215,6 +217,7 @@ const LandingPage: React.FC<{
   const [gameBusy, setGameBusy] = useState(false);
   const [gameError, setGameError] = useState<string | null>(null);
   const [gameSurface, setGameSurface] = useState<'board' | 'sheet'>('board');
+  const [immersiveGame, setImmersiveGame] = useState(() => Capacitor.isNativePlatform() || window.location.pathname.toLowerCase().startsWith('/play'));
   const [replayStatus, setReplayStatus] = useState('Replay not run yet.');
   const [privacyReceipt, setPrivacyReceipt] = useState('No privacy receipt generated yet.');
   const [privacyReceiptCount, setPrivacyReceiptCount] = useState(() => readPrivacyReceipts().length);
@@ -248,6 +251,12 @@ const LandingPage: React.FC<{
     const unsubscribe = gameHost.subscribe(setGameState);
     gameHost.initialize().then(setGameState).catch((error: Error) => setGameError(error.message));
     return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const syncGameRoute = () => setImmersiveGame(Capacitor.isNativePlatform() || window.location.pathname.toLowerCase().startsWith('/play'));
+    window.addEventListener('popstate', syncGameRoute);
+    return () => window.removeEventListener('popstate', syncGameRoute);
   }, []);
 
   const sendGameCommand = async (type: string, payload: Record<string, unknown> = {}) => {
@@ -377,6 +386,21 @@ const LandingPage: React.FC<{
     setPrivacyReceipt(JSON.stringify(receipt, null, 2));
   };
 
+  const enterGame = (event?: React.MouseEvent<HTMLAnchorElement>) => {
+    event?.preventDefault();
+    setImmersiveGame(true);
+    if (!Capacitor.isNativePlatform()) window.history.pushState({}, '', `/play${window.location.search}`);
+  };
+
+  const exitGame = () => {
+    setImmersiveGame(false);
+    window.history.pushState({}, '', `/${window.location.search}`);
+  };
+
+  if (immersiveGame) {
+    return <AlgoQuestGameShell state={gameState} projection={gameProjection} prompt={gamePromptNode} busy={gameBusy} error={gameError} onCommand={sendGameCommand} onReset={resetGame} onExit={Capacitor.isNativePlatform() ? undefined : exitGame} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#050816] text-slate-100">
       <header className="sticky top-0 z-50 border-b border-blue-300/15 bg-[#050816]/92 backdrop-blur">
@@ -423,6 +447,13 @@ const LandingPage: React.FC<{
                 and a keyboard-friendly Learning Lab. This is a supervised education surface, not an autonomous authority.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
+                <a
+                  href="/play"
+                  onClick={enterGame}
+                  className="rounded-md bg-amber-300 px-5 py-3 text-sm font-black text-slate-950 shadow-lg shadow-amber-500/25 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                >
+                  Jouer maintenant
+                </a>
                 <a
                   href="/student"
                   onClick={(event) => routeSurface(event, 'student')}
